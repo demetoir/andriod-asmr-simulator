@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Multimedia-system-project-3d-sound-simulator</string>
+
+    <!--button text-->
+    <string name="moveCounterClockWiseButtonText">ccw turn</string>
+    <string name="moveClockWisebuttonText">cw turn</string>
+    <string name="playButtonText">play</string>
+    <string name="stopButtonText">stop</string>
+    <string name="distance_increaseBtnText">distance
+        increase</string>
+    <string name="distance_decreaseBtnText">distance
+        decrease</string>
+
+    <!--format-->
+    <string name="textAngleFormat">angle : %.1f</string>
+    <string name="textDistanceFormat">distance : %.1f</string>
+
+</resources>
