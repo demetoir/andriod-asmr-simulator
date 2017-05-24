@@ -3,53 +3,51 @@ package me.demetoir.a3dsound_ndk;
 import android.media.AudioTrack;
 import android.util.Log;
 
-import static me.demetoir.a3dsound_ndk.SoundBuffer.PUSHABLE_SIZE;
-
 
 class SoundConsumer extends Thread {
     private final static String TAG = "SoundConsumer";
 
     SoundBuffer mSoundBuffer;
     AudioTrack mAudioTrack;
-    boolean mIsSoundPlay;
+    boolean mIsConsumming;
 
     SoundConsumer(SoundBuffer mSoundBuffer, AudioTrack audioTrack) {
         this.mSoundBuffer = mSoundBuffer;
         this.mAudioTrack = audioTrack;
-        this.mIsSoundPlay = false;
+        this.mIsConsumming = false;
 
     }
 
-    void playSound() {
-        this.mIsSoundPlay = true;
+    void startConsumming() {
+        mIsConsumming = true;
     }
 
-    void stopSound() {
-        this.mIsSoundPlay = false;
+    void stopConsumming() {
+        mIsConsumming = false;
     }
 
-    synchronized private void soundProcess() {
-        float[] outputSound = new float[PUSHABLE_SIZE];
+    private void soundProcess() {
+        float[] outputSound;
         while (true) {
-            if (!this.mIsSoundPlay) break;
-            long start = System.currentTimeMillis();
-
-            if (!mSoundBuffer.isPopable()) {
-                Log.i(TAG, "soundProcess: delayed");
-
+            if (!mIsConsumming){
                 try {
-                    wait(60);
+                    sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
                 continue;
             }
+
+            if (!mSoundBuffer.isPopable()) {
+                continue;
+            }
+
+            long end = System.currentTimeMillis();
             outputSound = mSoundBuffer.popBuffer();
             mAudioTrack.write(outputSound, 0, outputSound.length,
                     AudioTrack.WRITE_NON_BLOCKING);
-            long end = System.currentTimeMillis();
-            Log.i(TAG, "soundProcess: time = "+(end-start)/1000.0);
+            long start = System.currentTimeMillis();
+            Log.i(TAG, "cunsumProcess: time = " + (end - start) / 1000.0);
 
 
         }

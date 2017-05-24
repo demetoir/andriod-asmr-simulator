@@ -3,6 +3,7 @@ package me.demetoir.a3dsound_ndk;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -17,107 +18,215 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
 
-    private double mAngle;
-    private final double MAX_ANGLE = 360;
-    private final int TOTAL_ANGLE_STEP = 20;
-    private final int SAMPLING_RATE = 44100;
-    private final double MAX_DISTANCE = 10;
-    private final int BUFFER_SIZE = 2048;
+    // Used to load the 'native-lib' library on application startup.
+    static {
+        System.loadLibrary("native-lib");
+    }
 
-    private float[][] mLeftHRTFdatabase;
-    private float[][] mRightHRTFdatabase;
+    private final static double MAX_ANGLE = 360;
+    private final static int TOTAL_ANGLE_STEP = 20;
+    private final static int SAMPLING_RATE = 44100;
+    private final static double MAX_DISTANCE = 10;
+    private final static int BUFFER_SIZE = 2048;
+    private final static int MAX_ANGLE_INDEX_SIZE = 100;
+    private final static int HTRF_SIZE = 200;
+    private final static int MAX_SOHANDLE_SIZE = 10;
 
     private TextView mAngleTextView;
     private TextView mDistanceTextView;
 
+    private double mAngle;
+    private double mDistance;
+    private float[] mSoundArray;
+
+    private AudioTrack mAudioTrack;
+    private SoundEngine mSoundEngine;
+    private int[] mSOHandleList;
+
+    // BUTTTON
     private Button mPlayBtn;
     private Button mStopBtn;
     private Button mCCWBtn;
     private Button mCWBtn;
     private Button mDistIncBtn;
     private Button mDistDecBtn;
-    private short[] mSoundArray;
 
-    private double mDistance;
+    private StartBtnAsyncTask mStartBtnTask;
+    private StopBtnAsyncTask mStopBtntask;
 
-    private AudioTrack mAudioTrack;
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private void playSound() {
-        mAudioTrack.play();
-
-        FloatBuffer buf = FloatBuffer.allocate(BUFFER_SIZE*2);
-
-
-        int angleIdx = getAngleIndex();
-        float[] leftH = mLeftHRTFdatabase[angleIdx];
-        float[] rightH = mRightHRTFdatabase[angleIdx];
-        float[] fSoundArray = shortToFloat(mSoundArray);
-
-        SoundEngine engine = new SoundEngine(leftH, rightH,
-                shortToFloat(mSoundArray), mAudioTrack);
-        Log.i(TAG, "playSound:  engine inited and start");
-
-        engine.start();
-
-    }
-
-    private int getAngleIndex() {
-        return 50 - (int) ((mAngle * 49) / 90);
-    }
-
-    private void testPlaySound() {
-        short[] sMixOutput = mixMonoToStereo(mSoundArray, mSoundArray);
-        float[] fMixOutput = shortToFloat(sMixOutput);
-
-        Log.i(TAG, "playSound: buff conv end");
-
-        Log.i(TAG, "playSound: output len  = " + fMixOutput.length);
-        FloatBuffer buf = FloatBuffer.allocate(10000);
-
-
-        mAudioTrack.play();
-        float[] bufOut = new float[8000];
-        for (int loop = 0; loop < fMixOutput.length / 8000; loop++) {
-
-            for (int i = 0; i < 8000; i++)
-                buf.put(fMixOutput[i+ loop*8000]);
-
-            buf.flip();
-            buf.get(bufOut);
-            buf.compact();
-            int len = mAudioTrack.write(bufOut, 0, bufOut.length,
-                    AudioTrack.WRITE_BLOCKING);
-
+    public class StartBtnAsyncTask extends AsyncTask<Void, Void, Void> {
+        final static String TAG = "StartBtnAsyncTask";
+        SoundEngine mSoundEngine;
+        public StartBtnAsyncTask(SoundEngine soundEngine) {
+            mSoundEngine = soundEngine;
         }
 
-//        int cursor = fMixOutput.length - len;
-//        Log.i(TAG, "onClick: cursor = " + cursor);
-//        while (cursor < fMixOutput.length) {
-//            len = mAudioTrack.write(fMixOutput, cursor, fMixOutput.length - cursor,
-//                    AudioTrack.WRITE_BLOCKING);
-////            mAudioTrack.play();
-//            cursor += len;
-//
-//            Log.i(TAG, "onClick: cursor = " + cursor);
-//        }
-//        Log.i(TAG, "playSound: len = " + len);
+        @Override
+        protected Void doInBackground(Void... params) {
+            mSoundEngine.start();
+            Log.i(TAG, "doInBackground: end task");
+            return null;
+        }
 
     }
+
+    public class StopBtnAsyncTask extends AsyncTask<Void, Void, Void> {
+        final static String TAG = "StopBtnAsyncTask";
+        SoundEngine mSoundEngine;
+
+        public StopBtnAsyncTask(SoundEngine soundEngine) {
+            mSoundEngine = soundEngine;
+            Log.i(TAG, "StopBtnAsyncTask: end task");
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            Log.i(TAG, "doInBackground: stop Sound");
+
+            mSoundEngine.stop();
+            return null;
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        initButtons();
+        initTextView();
+
+        mSoundArray = loadMonoSound(R.raw.raw_explosion);
+
+        initAudioTrack();
+
+        mSOHandleList = new int[MAX_SOHANDLE_SIZE];
+        mSoundEngine = new SoundEngine(mAudioTrack);
+        mSoundEngine.loadHRTF_database(
+                loadHRTFdatabase(R.raw.left_hrtf_database),
+                loadHRTFdatabase(R.raw.right_hrtf_database),
+                MAX_ANGLE_INDEX_SIZE);
+
+        int SOHandle = mSoundEngine.makeNewSO(64, mAngle, mDistance, mSoundArray);
+
+        mStartBtnTask = new StartBtnAsyncTask(mSoundEngine);
+        mStopBtntask = new StopBtnAsyncTask(mSoundEngine);
+    }
+
+    private void initTextView() {
+        mAngleTextView = (TextView) findViewById(R.id.angleText);
+        mAngle = 0;
+        updateAngleTextView();
+
+        mDistanceTextView = (TextView) findViewById(R.id.distanceTextView);
+        mDistance = 0.0;
+        updateDistanceTextView();
+    }
+
+    private void initButtons() {
+        mPlayBtn = (Button) findViewById(R.id.playButton);
+        mPlayBtn.setOnClickListener(mPlayBtnOnClickListener);
+
+        mStopBtn = (Button) findViewById(R.id.stopButton);
+        mStopBtn.setOnClickListener(mStopBtnOnClickListener);
+
+        mCCWBtn = (Button) findViewById(R.id.moveCounterClockWise);
+        mCCWBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mAngle > -90) {
+                    mAngle -= 10;
+                    updateAngleTextView();
+                }
+            }
+        });
+
+        mCWBtn = (Button) findViewById(R.id.moveClockWise);
+        mCWBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mAngle < 90) {
+                    mAngle += 10;
+                    updateAngleTextView();
+                }
+            }
+        });
+
+        mDistIncBtn = (Button) findViewById(R.id.distanceIncrease);
+        mDistIncBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDistance < MAX_DISTANCE) {
+                    mDistance += 1;
+                    updateDistanceTextView();
+                }
+            }
+        });
+
+        mDistDecBtn = (Button) findViewById(R.id.distanceDecrease);
+        mDistDecBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDistance > 0) {
+                    mDistance -= 1;
+                    updateDistanceTextView();
+                }
+            }
+        });
+    }
+
+    private void updateAngleTextView() {
+        mAngleTextView.setText(String.format(getResources().getString(R.string.textAngleFormat), mAngle));
+    }
+
+    private void updateDistanceTextView() {
+        mDistanceTextView.setText(String.format(getResources().getString(R.string.textDistanceFormat), mDistance));
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    void initAudioTrack() {
+        //init m
+//        int minSize = SAMPLING_RATE;
+        int minSize = AudioTrack.getMinBufferSize(SAMPLING_RATE,
+                AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_FLOAT);
+        Log.i(TAG, "initAudioTrack: minsize " + minSize);
+//        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+//                SAMPLING_RATE,
+//                AudioFormat.CHANNEL_OUT_MONO,
+//                AudioFormat.ENCODING_PCM_16BIT,
+//                minSize,
+//                AudioTrack.MODE_STREAM);
+
+        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                SAMPLING_RATE,
+                AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_FLOAT,
+                minSize,
+                AudioTrack.MODE_STREAM);
+
+        mAudioTrack.setVolume(3.0f);
+    }
+
 
     private Button.OnClickListener mPlayBtnOnClickListener = new View.OnClickListener() {
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onClick(View v) {
 //            testPlaySound();
-            playSound();
-            Log.i(TAG, "onClick: end convolutioin");
+            mSoundEngine.start();
+//            StartBtnAsyncTask task = new StartBtnAsyncTask(mSoundEngine);
+//
+//            if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB) {
+//                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+//            } else {
+//                task.execute();
+//            }
 //            int head = 0;
 //            while (true) {
 //                if (head >= sizeSound)
@@ -198,94 +307,32 @@ public class MainActivity extends AppCompatActivity {
     private Button.OnClickListener mStopBtnOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            mAudioTrack.stop();
+
+        mSoundEngine.stop();
+//            StopBtnAsyncTask task = new StopBtnAsyncTask (mSoundEngine);
+//
+//            if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB) {
+//                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+//            } else {
+//                task.execute();
+//            }
+
         }
     };
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-
-        mPlayBtn = (Button) findViewById(R.id.playButton);
-        mPlayBtn.setOnClickListener(mPlayBtnOnClickListener);
-
-        mStopBtn = (Button) findViewById(R.id.stopButton);
-        mStopBtn.setOnClickListener(mStopBtnOnClickListener);
-
-        mCCWBtn = (Button) findViewById(R.id.moveCounterClockWise);
-        mCCWBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mAngle > -90) {
-                    mAngle -= 10;
-                    updateAngleTextView();
-                }
-            }
-        });
-
-        mCWBtn = (Button) findViewById(R.id.moveClockWise);
-        mCWBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mAngle < 90) {
-                    mAngle += 10;
-                    updateAngleTextView();
-                }
-            }
-        });
-
-        mDistIncBtn = (Button) findViewById(R.id.distanceIncrease);
-        mDistIncBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mDistance < MAX_DISTANCE) {
-                    mDistance += 1;
-                    updateDistanceTextView();
-                }
-            }
-        });
-
-        mDistDecBtn = (Button) findViewById(R.id.distanceDecrease);
-        mDistDecBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mDistance > 0) {
-                    mDistance -= 1;
-                    updateDistanceTextView();
-                }
-            }
-        });
-
-        mAngleTextView = (TextView) findViewById(R.id.angleText);
-        mAngle = 0;
-        updateAngleTextView();
-
-        mDistanceTextView = (TextView) findViewById(R.id.distanceTextView);
-        mDistance = 0.0;
-        updateDistanceTextView();
-
-        mLeftHRTFdatabase = loadHRTFdatabase(R.raw.left_hrtf_database);
-        mRightHRTFdatabase = loadHRTFdatabase(R.raw.right_hrtf_database);
-
-        mSoundArray = loadMonoSound(R.raw.raw_explosion);
-
-        initAudioTrack();
+    private int getAngleIndex() {
+        return 50 - (int) ((mAngle * 49) / 90);
     }
 
-
     float[][] loadHRTFdatabase(int resId_HRTFDatabase) {
-        final int MAX_INDEX = 200;
-        float[][] HRTFdatabase = new float[100][200];
+        float[][] HRTFdatabase = new float[MAX_ANGLE_INDEX_SIZE][HTRF_SIZE];
 
         InputStream inputStream = this.getResources().openRawResource(resId_HRTFDatabase);
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
         BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
         try {
-            for (int index = 0; index < MAX_INDEX; index++) {
+            for (int index = 0; index < MAX_ANGLE_INDEX_SIZE; index++) {
                 String line = bufferedReader.readLine();
                 String[] values = line.split("\t");
 //                Log.i(TAG, "loadHRTFdatabase: "+line);
@@ -312,7 +359,6 @@ public class MainActivity extends AppCompatActivity {
             Log.e(TAG, "loadHRTFdatabase: ", e);
         }
 
-
 //        for (int i = 0; i < 200; i++)
 //            Log.i(TAG, "loadHRTFdatabase:  val = " + HRTFdatabase[0][i]);
 
@@ -320,39 +366,7 @@ public class MainActivity extends AppCompatActivity {
         return HRTFdatabase;
     }
 
-    void updateAngleTextView() {
-        mAngleTextView.setText(String.format(getResources().getString(R.string.textAngleFormat), mAngle));
-    }
-
-    private void updateDistanceTextView() {
-        mDistanceTextView.setText(String.format(getResources().getString(R.string.textDistanceFormat), mDistance));
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    void initAudioTrack() {
-        //init m
-//        int minSize = SAMPLING_RATE;
-        int minSize = AudioTrack.getMinBufferSize(SAMPLING_RATE,
-                AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_FLOAT);
-        Log.i(TAG, "initAudioTrack: minsize " + minSize);
-//        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-//                SAMPLING_RATE,
-//                AudioFormat.CHANNEL_OUT_MONO,
-//                AudioFormat.ENCODING_PCM_16BIT,
-//                minSize,
-//                AudioTrack.MODE_STREAM);
-
-        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-                SAMPLING_RATE,
-                AudioFormat.CHANNEL_OUT_STEREO,
-                AudioFormat.ENCODING_PCM_FLOAT,
-                minSize,
-                AudioTrack.MODE_STREAM);
-
-        mAudioTrack.setVolume(3.0f);
-    }
-
-    short[] loadMonoSound(int monoSoundResId) {
+    float[] loadMonoSound(int monoSoundResId) {
         short[] monoSound;
         InputStream inputStream = this.getResources().openRawResource(monoSoundResId);
         DataInputStream dataInputStream = null;
@@ -383,150 +397,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return monoSound;
-    }
 
-
-    short[] mixMonoToStereo(short[] leftMonoSound, short[] rightMonoSound) {
-        int size = (leftMonoSound.length > rightMonoSound.length)
-                ? leftMonoSound.length : rightMonoSound.length;
-        short[] output = new short[size * 2];
-        for (int i = 0; i < size * 2; i++)
-            output[i] = 0;
-
-        //left
-        for (int i = 0; i < leftMonoSound.length; i++)
-            output[i * 2] = leftMonoSound[i];
-
-        //right
-        for (int i = 0; i < rightMonoSound.length; i++)
-            output[i * 2 + 1] = rightMonoSound[i];
-
-        return output;
-    }
-
-    float[] mixMonoToStereo(float[] leftMonoSound, float[] rightMonoSound) {
-        int size = (leftMonoSound.length > rightMonoSound.length)
-                ? leftMonoSound.length : rightMonoSound.length;
-        float[] output = new float[size * 2];
-        for (int i = 0; i < size * 2; i++)
-            output[i] = 0;
-
-        //left
-        for (int i = 0; i < leftMonoSound.length; i++)
-            output[i * 2] = leftMonoSound[i];
-
-        //right
-        for (int i = 0; i < rightMonoSound.length; i++)
-            output[i * 2 + 1] = rightMonoSound[i];
-
-        return output;
-    }
-
-
-    float[] filteringMonoSound(Complex[] monoSound, Complex[] HRTFdatabse) {
-        int size = 1;
-        while (true) {
-            if (size > monoSound.length + HRTFdatabse.length)
-                break;
-            size *= 2;
-        }
-        Log.i(TAG, "filteringMonoSound: convolution size = " + size);
-        float[] outputSound;
-
-        //convolution
-        Complex[] a = new Complex[size];
-        Complex[] b = new Complex[size];
-        for (int i = 0; i < size; i++) {
-            if (i < monoSound.length)
-                a[i] = monoSound[i];
-            else
-                a[i] = new Complex(0, 0);
-
-            if (i < HRTFdatabse.length)
-                b[i] = HRTFdatabse[i];
-            else
-                b[i] = new Complex(0, 0);
-        }
-        Log.i(TAG, "filteringMonoSound: zero padding end");
-
-        Complex[] convResult = FFT.cconvolve(a, b);
-//        for (int i = 0; i < 512; i++) {
-//            Log.i(TAG, "filteringMonoSound: conv result i = " + i + " re = " + convResult[i].re()
-//                    + " im = " + convResult[i].im());
-//        }
-
-        Log.i(TAG, "filteringMonoSound: end convolution");
-        //convert Complex to short
-        outputSound = complexToFloat(convResult);
-
-        return outputSound;
-    }
-
-    short[] setVolumeBy(short[] monoSound, double distance) {
-        int size = monoSound.length;
-        short[] outputSound = new short[size];
-        for (int i = 0; i < size; i++) {
-            outputSound[i] = (short) ((double) monoSound[i] * (distance / MAX_DISTANCE));
-        }
-
-        return outputSound;
-    }
-
-    short[] volumeUp(short[] shorts, double gain) {
-        int size = shorts.length;
-        short[] output = new short[size];
-        for (int i = 0; i < size; i++) {
-            double val = (double) shorts[i] * gain;
-            output[i] = (short) val;
-        }
-        return output;
-    }
-
-    Complex[] shortToComplex(short[] shorts) {
-        int size = shorts.length;
-        Complex[] complexArray = new Complex[size];
-        float[] floats = shortToFloat(shorts);
-        for (int i = 0; i < size; i++) {
-            complexArray[i] = new Complex((double) floats[i], 0);
-        }
-        return complexArray;
-    }
-
-    float[] complexToFloat(Complex[] complexArray) {
-        int size = complexArray.length;
-        float[] floats = new float[size];
-        for (int i = 0; i < size; i++) {
-            floats[i] = (float) complexArray[i].re();
-        }
-        return floats;
-    }
-
-    short[] cutOff(short[] shorts, int size) {
-        short[] output = new short[size];
-        for (int i = 0; i < size; i++)
-            output[i] = shorts[i];
-        return output;
-    }
-
-    float[] cutOff(float[] shorts, int size) {
-        float[] output = new float[size];
-        for (int i = 0; i < size; i++)
-            output[i] = shorts[i];
-        return output;
-    }
-
-
-    short[] floatToShort(float[] floats) {
-        int size = floats.length;
-        short[] shorts = new short[size];
-        final double factor = 32767;
-        for (int i = 0; i < size; i++) {
-            shorts[i] = (short) (floats[i] * factor);
-//            Log.i(TAG, "floatToShort: convert float = " + floats[i]
-//                    + " short = " + shorts[i]);
-        }
-        return shorts;
+        return shortToFloat(monoSound);
     }
 
     float[] shortToFloat(short[] shorts) {
@@ -538,6 +410,110 @@ public class MainActivity extends AppCompatActivity {
         }
         return floats;
     }
+    //
+//    short[] mixMonoToStereo(short[] leftMonoSound, short[] rightMonoSound) {
+//        int size = (leftMonoSound.length > rightMonoSound.length)
+//                ? leftMonoSound.length : rightMonoSound.length;
+//        short[] output = new short[size * 2];
+//        for (int i = 0; i < size * 2; i++)
+//            output[i] = 0;
+//
+//        //left
+//        for (int i = 0; i < leftMonoSound.length; i++)
+//            output[i * 2] = leftMonoSound[i];
+//
+//        //right
+//        for (int i = 0; i < rightMonoSound.length; i++)
+//            output[i * 2 + 1] = rightMonoSound[i];
+//
+//        return output;
+//    }
+//
+//    float[] mixMonoToStereo(float[] leftMonoSound, float[] rightMonoSound) {
+//        int size = (leftMonoSound.length > rightMonoSound.length)
+//                ? leftMonoSound.length : rightMonoSound.length;
+//        float[] output = new float[size * 2];
+//        for (int i = 0; i < size * 2; i++)
+//            output[i] = 0;
+//
+//        //left
+//        for (int i = 0; i < leftMonoSound.length; i++)
+//            output[i * 2] = leftMonoSound[i];
+//
+//        //right
+//        for (int i = 0; i < rightMonoSound.length; i++)
+//            output[i * 2 + 1] = rightMonoSound[i];
+//
+//        return output;
+//    }
+//
+//
+//    short[] setVolumeBy(short[] monoSound, double distance) {
+//        int size = monoSound.length;
+//        short[] outputSound = new short[size];
+//        for (int i = 0; i < size; i++) {
+//            outputSound[i] = (short) ((double) monoSound[i] * (distance / MAX_DISTANCE));
+//        }
+//
+//        return outputSound;
+//    }
+//
+//    short[] volumeUp(short[] shorts, double gain) {
+//        int size = shorts.length;
+//        short[] output = new short[size];
+//        for (int i = 0; i < size; i++) {
+//            double val = (double) shorts[i] * gain;
+//            output[i] = (short) val;
+//        }
+//        return output;
+//    }
+//
+//    Complex[] shortToComplex(short[] shorts) {
+//        int size = shorts.length;
+//        Complex[] complexArray = new Complex[size];
+//        float[] floats = shortToFloat(shorts);
+//        for (int i = 0; i < size; i++) {
+//            complexArray[i] = new Complex((double) floats[i], 0);
+//        }
+//        return complexArray;
+//    }
+//
+//    float[] complexToFloat(Complex[] complexArray) {
+//        int size = complexArray.length;
+//        float[] floats = new float[size];
+//        for (int i = 0; i < size; i++) {
+//            floats[i] = (float) complexArray[i].re();
+//        }
+//        return floats;
+//    }
+//
+//    short[] cutOff(short[] shorts, int size) {
+//        short[] output = new short[size];
+//        for (int i = 0; i < size; i++)
+//            output[i] = shorts[i];
+//        return output;
+//    }
+//
+//    float[] cutOff(float[] shorts, int size) {
+//        float[] output = new float[size];
+//        for (int i = 0; i < size; i++)
+//            output[i] = shorts[i];
+//        return output;
+//    }
+//
+//
+//    short[] floatToShort(float[] floats) {
+//        int size = floats.length;
+//        short[] shorts = new short[size];
+//        final double factor = 32767;
+//        for (int i = 0; i < size; i++) {
+//            shorts[i] = (short) (floats[i] * factor);
+////            Log.i(TAG, "floatToShort: convert float = " + floats[i]
+////                    + " short = " + shorts[i]);
+//        }
+//        return shorts;
+//    }
+
 }
 
 //

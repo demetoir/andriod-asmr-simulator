@@ -7,7 +7,7 @@ class SoundBuffer {
     private final static String TAG = "SoundBuffer";
 
     final static int BUFFER_SIZE = 2048 * 32;
-    final static int PUSHABLE_SIZE = 128;
+    final static int PUSHABLE_SIZE = 256;
     private final static int POPABLE_SIZE = 128;
 
     private FloatBuffer mBuffer;

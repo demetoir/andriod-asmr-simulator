@@ -11,18 +11,21 @@ class SoundProvider extends Thread {
 
     private final static int HRTF_SIZE = 200;
 
-    SoundBuffer mSoundBuffer;
+    static {
+        System.loadLibrary("native-lib");
+    }
+
+    private SoundBuffer mSoundBuffer;
     float[] mLeftHRTF;
     float[] mRightHRTF;
     float[] mInputsound;
+    int mSOHandle;
+    boolean mIsProviding;
 
-
-    SoundProvider(SoundBuffer object, float[] LeftHRTF,
-                  float[] RightHRTF, float[] inputSound) {
-        this.mSoundBuffer = object;
-        this.mLeftHRTF = LeftHRTF;
-        this.mRightHRTF = RightHRTF;
-        this.mInputsound = inputSound;
+    SoundProvider(SoundBuffer object, int SOHandle) {
+        mSoundBuffer = object;
+        mSOHandle = SOHandle;
+        mIsProviding = false;
     }
 
     short[] mixMonoToStereo(short[] leftMonoSound, short[] rightMonoSound) {
@@ -62,8 +65,8 @@ class SoundProvider extends Thread {
     }
 
     public float[] conv(float x[], int head,
-                        float[] leftOutput, float[] rightOutput){
-        float [] ret = new float[SoundBuffer.PUSHABLE_SIZE];
+                        float[] leftOutput, float[] rightOutput) {
+        float[] ret = new float[SoundBuffer.PUSHABLE_SIZE];
 
         for (int i = 0; i < SoundBuffer.PUSHABLE_SIZE; i++) {
             // delay and push
@@ -89,60 +92,28 @@ class SoundProvider extends Thread {
 
         return ret;
     }
-    synchronized public void providerProcess() {
-        int head = 0;
-        float[] x = new float[HRTF_SIZE];
-        float[] leftOutput = new float[SoundBuffer.PUSHABLE_SIZE];
-        float[] rightOutput = new float[SoundBuffer.PUSHABLE_SIZE];
 
+
+    public void providerProcess() {
+        Log.i(TAG, "providerProcess: start");
         while (true) {
-            long start = System.currentTimeMillis();
-
-            if (head + SoundBuffer.PUSHABLE_SIZE >= mInputsound.length) break;
-
-            //n^2 conv
-            for (int i = 0; i < SoundBuffer.PUSHABLE_SIZE; i++) {
-                // delay
-                for (int j = HRTF_SIZE - 1; j > 0; j--) {
-                    x[j] = x[j - 1];
-                }
-
-                x[0] = mInputsound[head + i];
-
-                float leftSum = 0;
-                float rightSum = 0;
-                for (int j = 0; j < HRTF_SIZE; j++) {
-                    leftSum += x[j] * mLeftHRTF[j];
-                    rightSum += x[j] * mRightHRTF[j];
-                }
-                leftOutput[i] = leftSum;
-                rightOutput[i] = rightSum;
-            }
-
-            float[] fMixOutput = mixMonoToStereo(leftOutput, rightOutput);
-
-
-            while(true) {
-                if(mSoundBuffer.isPushalbe()) {
-                    mSoundBuffer.pushBuffer(fMixOutput);
-                    break;
-                }
-
+            if (!mIsProviding) {
                 try {
-                    wait(2);
+                    sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                Log.i(TAG, "providerProcess: delayed");
+                continue;
             }
+            long start = System.currentTimeMillis();
+            float[] fMixOutput = convProcess(mSOHandle);
 
+            if (!mSoundBuffer.isPushalbe()) continue;
+
+            mSoundBuffer.pushBuffer(fMixOutput);
             long end = System.currentTimeMillis();
-            Log.i(TAG, "providerProcess: time "+ (end-start)/1000.0);
-
-
-            head += SoundBuffer.PUSHABLE_SIZE;
+            Log.i(TAG, "providerProcess: time " + (end - start) / 1000.0);
         }
-
     }
 
     @Override
@@ -150,4 +121,15 @@ class SoundProvider extends Thread {
         super.run();
         providerProcess();
     }
+
+    public native float[] convProcess(int SOHandle_j);
+
+    public void startProviding() {
+        mIsProviding = true;
+    }
+
+    public void stopProviding() {
+        mIsProviding = false;
+    }
+
 }
