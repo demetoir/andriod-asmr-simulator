@@ -3,11 +3,8 @@ package me.demetoir.a3dsound_ndk;
 import android.media.AudioTrack;
 import android.util.Log;
 
-/**
- * Created by Yujun-desktop on 2017-05-24.
- */
 
-public class SoundEngine {
+class SoundEngine {
     private final static String TAG = "SoundEngine";
 
     // Used to load the 'native-lib' library on application startup.
@@ -18,7 +15,7 @@ public class SoundEngine {
     private final static int MAX_SPOHANDLE_SIZE = 10;
 
     private SoundProvider mProvider;
-    private SoundConsumer mConsummer;
+    private SoundConsumer mConsumer;
     private SoundBuffer mSoundBuffer;
     private AudioTrack mAudioTrack;
 
@@ -31,11 +28,9 @@ public class SoundEngine {
 
         SPOHandleList = new int[MAX_SPOHANDLE_SIZE];
 
-        mConsummer = new SoundConsumer(mSoundBuffer, mAudioTrack);
+        mConsumer = new SoundConsumer(mSoundBuffer, mAudioTrack);
         mProvider = new SoundProvider(mSoundBuffer, 0);
         mIsPlaying = false;
-
-
     }
 
     public void loadHRTF_database(float[][] rightHRTF_database,
@@ -53,15 +48,21 @@ public class SoundEngine {
 
         mAudioTrack.play();
         mProvider.startProviding();
-        mConsummer.startConsumming();
+        mConsumer.startConsumming();
         try {
+            mProvider.setPriority(7);
             mProvider.start();
-        }catch (Exception e){
+        }catch (Exception ignored){
+        }finally {
+            Log.i(TAG, "start: mProvider started");
         }
 
         try{
-            mConsummer.start();
-        }catch (Exception e){
+            mConsumer.setPriority(7);
+            mConsumer.start();
+        }catch (Exception ignored){
+        }finally {
+            Log.i(TAG, "start: mConsumer started");
         }
 
 
@@ -72,7 +73,7 @@ public class SoundEngine {
     // TODO test please
     public void stop() {
         mProvider.stopProviding();
-        mConsummer.stopConsumming();
+        mConsumer.stopConsumming();
         mIsPlaying = false;
     }
 
@@ -87,11 +88,11 @@ public class SoundEngine {
 
     private native int initSoundObject(int x_size_j, double angle_j, double distance_j, float[] sound_j);
 
-    public native void setSOAngle(int handle_j, int angle_j);
+    public native void setSOAngle(int handle_j, double angle_j);
 
-    public native int getSOAngle(int handle_j);
+    public native double getSOAngle(int handle_j);
 
-    public native void setSODistance(int handle_j, int distance_j);
+    public native void setSODistance(int handle_j, double distance_j);
 
-    public native int getSODistance(int handle_j);
+    public native double getSODistance(int handle_j);
 }

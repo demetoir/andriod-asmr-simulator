@@ -6,41 +6,41 @@ import java.nio.FloatBuffer;
 class SoundBuffer {
     private final static String TAG = "SoundBuffer";
 
-    final static int BUFFER_SIZE = 2048 * 32;
-    final static int PUSHABLE_SIZE = 256;
-    private final static int POPABLE_SIZE = 128;
+    private final static int BUFFER_SIZE = 2048*32 ;
+    private final static int CHANNEL_SIZE = 2;
+    private final static int PUSHABLE_SIZE_PER_CHANNEL = 64;
+    private final static int PUSHABLE_SIZE = PUSHABLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
+    private final static int POPABBLE_SIZE_PER_CHANNEL = 128;
+    private final static int POPABLE_SIZE = POPABBLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
 
     private FloatBuffer mBuffer;
+    private float[] mTempBuf;
 
     SoundBuffer() {
-        mBuffer = FloatBuffer.allocate(BUFFER_SIZE * 2);
+        mBuffer = FloatBuffer.allocate(BUFFER_SIZE);
+        mTempBuf = new float[POPABLE_SIZE];
     }
 
-    SoundBuffer(FloatBuffer mBuffer) {
-        this.mBuffer = mBuffer;
+    boolean isPushAble() {
+        return this.mBuffer.remaining() >= PUSHABLE_SIZE;
     }
 
-    boolean isPushalbe() {
-        return this.mBuffer.hasRemaining();
-    }
-
-    boolean isPopable() {
+    boolean isPopAble() {
         return this.mBuffer.position() > POPABLE_SIZE;
     }
 
     public float[] popBuffer() {
-        float[] floats = new float[POPABLE_SIZE];
         synchronized (this) {
             mBuffer.flip();
-            mBuffer.get(floats, 0, POPABLE_SIZE);
+            mBuffer.get(mTempBuf, 0, POPABLE_SIZE);
             mBuffer.compact();
         }
-        return floats;
+        return mTempBuf;
     }
 
     public void pushBuffer(float[] floats) {
         synchronized (this) {
-            this.mBuffer.put(floats);
+            mBuffer.put(floats);
         }
     }
 }

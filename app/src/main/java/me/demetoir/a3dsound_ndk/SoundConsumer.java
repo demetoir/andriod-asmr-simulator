@@ -1,7 +1,8 @@
 package me.demetoir.a3dsound_ndk;
 
 import android.media.AudioTrack;
-import android.util.Log;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 
 
 class SoundConsumer extends Thread {
@@ -26,6 +27,7 @@ class SoundConsumer extends Thread {
         mIsConsumming = false;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void soundProcess() {
         float[] outputSound;
         while (true) {
@@ -38,21 +40,24 @@ class SoundConsumer extends Thread {
                 continue;
             }
 
-            if (!mSoundBuffer.isPopable()) {
+            if (!mSoundBuffer.isPopAble()) {
                 continue;
             }
 
-            long end = System.currentTimeMillis();
-            outputSound = mSoundBuffer.popBuffer();
+//            long end = System.currentTimeMillis();
+            synchronized (this) {
+                outputSound = mSoundBuffer.popBuffer();
+            }
             mAudioTrack.write(outputSound, 0, outputSound.length,
                     AudioTrack.WRITE_NON_BLOCKING);
-            long start = System.currentTimeMillis();
-            Log.i(TAG, "cunsumProcess: time = " + (end - start) / 1000.0);
+//            long start = System.currentTimeMillis();
+//            Log.i(TAG, "cunsumProcess: time = " + (end - start) / 1000.0);
 
 
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     public void run() {
         super.run();
