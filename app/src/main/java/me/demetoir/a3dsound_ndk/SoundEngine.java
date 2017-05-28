@@ -43,7 +43,7 @@ class SoundEngine {
     }
 
     public void start() {
-        if(mIsPlaying) return;
+        if (mIsPlaying) return;
         mIsPlaying = true;
 
         mAudioTrack.play();
@@ -52,16 +52,16 @@ class SoundEngine {
         try {
             mProvider.setPriority(7);
             mProvider.start();
-        }catch (Exception ignored){
-        }finally {
+        } catch (Exception ignored) {
+        } finally {
             Log.i(TAG, "start: mProvider started");
         }
 
-        try{
+        try {
             mConsumer.setPriority(7);
             mConsumer.start();
-        }catch (Exception ignored){
-        }finally {
+        } catch (Exception ignored) {
+        } finally {
             Log.i(TAG, "start: mConsumer started");
         }
 
@@ -78,7 +78,7 @@ class SoundEngine {
     }
 
 
-    public int makeNewSO(int x_size_j, double angle_j, double distance_j, float[] sound_j){
+    public int makeNewSO(int x_size_j, double angle_j, double distance_j, float[] sound_j) {
         int SOhandle = initSoundObject(x_size_j, angle_j, distance_j, sound_j);
         SPOHandleList[0] = SOhandle;
         return SOhandle;

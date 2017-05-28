@@ -8,6 +8,10 @@ import android.support.annotation.RequiresApi;
 class SoundConsumer extends Thread {
     private final static String TAG = "SoundConsumer";
 
+    static {
+        System.loadLibrary("native-lib");
+    }
+
     SoundBuffer mSoundBuffer;
     AudioTrack mAudioTrack;
     boolean mIsConsumming;

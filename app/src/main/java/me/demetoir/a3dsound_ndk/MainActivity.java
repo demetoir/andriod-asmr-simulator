@@ -1,5 +1,7 @@
 package me.demetoir.a3dsound_ndk;
 
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -8,8 +10,11 @@ import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -36,11 +41,15 @@ public class MainActivity extends AppCompatActivity {
     private final static int HTRF_SIZE = 200;
     private final static int MAX_SOHANDLE_SIZE = 10;
 
-    private TextView mAngleTextView;
-    private TextView mDistanceTextView;
-
     private double mAngle;
     private double mDistance;
+    private float mSOXcor;
+    private float mSOYcor;
+    private float mOldXcor;
+    private float mOldYcor;
+    private float mHeadXcor;
+    private float mHeadYcor;
+
     private float[] mSoundArray;
 
     private AudioTrack mAudioTrack;
@@ -55,6 +64,15 @@ public class MainActivity extends AppCompatActivity {
     private Button mDistIncBtn;
     private Button mDistDecBtn;
 
+    // TEXTView
+    private TextView mAngleTextView;
+    private TextView mDistanceTextView;
+    private TextView mXcorTextView;
+    private TextView mYcorTextView;
+
+    // IMAGEView
+    private ImageView mSoundSourceimageView;
+
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -64,6 +82,22 @@ public class MainActivity extends AppCompatActivity {
 
         initButtons();
         initTextView();
+
+        mSoundSourceimageView = (ImageView) findViewById(R.id.sound_source);
+        //set image round
+        mSoundSourceimageView.setBackground(new ShapeDrawable(new OvalShape()));
+        mSoundSourceimageView.setClipToOutline(true);
+        mSoundSourceimageView.setOnTouchListener(onTouchListener);
+
+        ImageView headImageView = (ImageView) findViewById(R.id.head);
+        int width = ((ViewGroup) headImageView.getParent()).getWidth();
+        int height = ((ViewGroup) headImageView.getParent()).getHeight();
+
+        headImageView.setX(width/2);
+        headImageView.setY(height/2);
+        mHeadXcor = headImageView.getX();
+        mHeadYcor = headImageView.getY();
+        Log.i(TAG, "onCreate: head x : "+ mHeadXcor+ " y : "+ mHeadYcor);
 
         mSoundArray = loadMonoSound(R.raw.raw_devil);
 
@@ -88,6 +122,12 @@ public class MainActivity extends AppCompatActivity {
         mDistanceTextView = (TextView) findViewById(R.id.distanceTextView);
         mDistance = 15;
         updateDistanceTextView();
+
+        mXcorTextView = (TextView) findViewById(R.id.XcorTextView);
+        updateXcorTextView();
+
+        mYcorTextView = (TextView) findViewById(R.id.YcorTextView);
+        updateYcorTextView();
     }
 
     private void initButtons() {
@@ -159,6 +199,15 @@ public class MainActivity extends AppCompatActivity {
         mDistanceTextView.setText(String.format(getResources().getString(R.string.textDistanceFormat), mDistance));
     }
 
+    private void updateXcorTextView() {
+        mXcorTextView.setText(String.format(getResources().getString(R.string.textXcorFormat), mSOXcor));
+    }
+
+    private void updateYcorTextView() {
+        mYcorTextView.setText(String.format(getResources().getString(R.string.textYcorFormat), mSOYcor));
+
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     void initAudioTrack() {
         //init m
@@ -199,9 +248,62 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private int getAngleIndex() {
-        return 50 - (int) ((mAngle * 49) / 90);
-    }
+    private ImageView.OnTouchListener onTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            Log.i(TAG, "onTouch: listener start");
+            int width = ((ViewGroup) v.getParent()).getWidth() - v.getWidth();
+            int height = ((ViewGroup) v.getParent()).getHeight() - v.getHeight();
+
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                mOldXcor = event.getX();
+                mOldYcor = event.getY();
+//                Log.i(TAG, "Action Down X" + event.getX() + "," + event.getY());
+//                Log.i(TAG, "Action Down rX " + event.getRawX() + "," + event.getRawY());
+            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                v.setX(event.getRawX() - mOldXcor);
+                v.setY(event.getRawY() - (mOldYcor + v.getHeight()));
+//                  Log.i(TAG, "Action Down " + me.getRawX() + "," + me.getRawY());
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                if (v.getX() > width && v.getY() > height) {
+                    v.setX(width);
+                    v.setY(height);
+                } else if (v.getX() < 0 && v.getY() > height) {
+                    v.setX(0);
+                    v.setY(height);
+                } else if (v.getX() > width && v.getY() < 0) {
+                    v.setX(width);
+                    v.setY(0);
+                } else if (v.getX() < 0 && v.getY() < 0) {
+                    v.setX(0);
+                    v.setY(0);
+                } else if (v.getX() < 0 || v.getX() > width) {
+                    if (v.getX() < 0) {
+                        v.setX(0);
+                        v.setY(event.getRawY() - mOldYcor - v.getHeight());
+                    } else {
+                        v.setX(width);
+                        v.setY(event.getRawY() - mOldYcor - v.getHeight());
+                    }
+                } else if (v.getY() < 0 || v.getY() > height) {
+                    if (v.getY() < 0) {
+                        v.setX(event.getRawX() - mOldXcor);
+                        v.setY(0);
+                    } else {
+                        v.setX(event.getRawX() - mOldXcor);
+                        v.setY(height);
+                    }
+                }
+            }
+
+            mSOXcor = v.getX();
+            mSOYcor = v.getY();
+            updateXcorTextView();
+            updateYcorTextView();
+            Log.i(TAG, "onTouch: listener end");
+            return true;
+        }
+    };
 
     float[][] loadHRTFdatabase(int resId_HRTFDatabase) {
         float[][] HRTFdatabase = new float[MAX_ANGLE_INDEX_SIZE][HTRF_SIZE];

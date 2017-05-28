@@ -3,8 +3,6 @@ package me.demetoir.a3dsound_ndk;
 class SoundProvider extends Thread {
     private final static String TAG = "SoundProvider";
 
-    private final static int HRTF_SIZE = 200;
-
     static {
         System.loadLibrary("native-lib");
     }

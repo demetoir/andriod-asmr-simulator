@@ -14,5 +14,7 @@
     <!--format-->
     <string name="textAngleFormat">angle : %.1f</string>
     <string name="textDistanceFormat">distance : %.1f</string>
+    <string name="textXcorFormat">X : %.2f</string>
+    <string name="textYcorFormat">Y : %.1f</string>
 
 </resources>

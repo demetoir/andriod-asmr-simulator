@@ -4,21 +4,43 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="me.demetoir.multimedia_system_project_3d_sound_simulator.MainActivity">
+    tools:context="me.demetoir.a3dsound_ndk.MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:weightSum="4">
+        android:weightSum="22">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="18">
+
+            <ImageView
+                android:id="@+id/head"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/ic_launcher"
+ />
+
+            <ImageView
+                android:id="@+id/sound_source"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/flat_cycles_32x32"
+
+                />
+
+        </RelativeLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:layout_weight="1"
-            android:weightSum="2">
+            android:weightSum="4">
             <TextView
                 android:id="@+id/angleText"
                 android:layout_width="match_parent"
@@ -34,6 +56,24 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="distance" />
+            <TextView
+                android:id="@+id/XcorTextView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="X"/>
+
+            <TextView
+                android:id="@+id/YcorTextView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Y" />
+
+
+
         </LinearLayout>
 
 
