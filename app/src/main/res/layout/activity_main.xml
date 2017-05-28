@@ -14,6 +14,7 @@
         android:weightSum="22">
 
         <RelativeLayout
+            android:id="@+id/SimulatorMonitorLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="18">
@@ -22,8 +23,7 @@
                 android:id="@+id/head"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@mipmap/ic_launcher"
- />
+                android:src="@mipmap/ic_launcher" />
 
             <ImageView
                 android:id="@+id/sound_source"
@@ -38,9 +38,10 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
             android:layout_weight="1"
+            android:gravity="center"
             android:weightSum="4">
+
             <TextView
                 android:id="@+id/angleText"
                 android:layout_width="match_parent"
@@ -56,13 +57,14 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="distance" />
+
             <TextView
                 android:id="@+id/XcorTextView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="X"/>
+                android:text="X" />
 
             <TextView
                 android:id="@+id/YcorTextView"
@@ -71,7 +73,6 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="Y" />
-
 
 
         </LinearLayout>

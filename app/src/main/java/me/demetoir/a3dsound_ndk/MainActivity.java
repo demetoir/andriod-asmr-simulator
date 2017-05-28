@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -62,17 +63,17 @@ public class MainActivity extends AppCompatActivity {
     private Button mCCWBtn;
     private Button mCWBtn;
     private Button mDistIncBtn;
+
     private Button mDistDecBtn;
 
     // TEXTView
     private TextView mAngleTextView;
+
     private TextView mDistanceTextView;
     private TextView mXcorTextView;
     private TextView mYcorTextView;
-
     // IMAGEView
     private ImageView mSoundSourceimageView;
-
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -89,15 +90,7 @@ public class MainActivity extends AppCompatActivity {
         mSoundSourceimageView.setClipToOutline(true);
         mSoundSourceimageView.setOnTouchListener(onTouchListener);
 
-        ImageView headImageView = (ImageView) findViewById(R.id.head);
-        int width = ((ViewGroup) headImageView.getParent()).getWidth();
-        int height = ((ViewGroup) headImageView.getParent()).getHeight();
 
-        headImageView.setX(width/2);
-        headImageView.setY(height/2);
-        mHeadXcor = headImageView.getX();
-        mHeadYcor = headImageView.getY();
-        Log.i(TAG, "onCreate: head x : "+ mHeadXcor+ " y : "+ mHeadYcor);
 
         mSoundArray = loadMonoSound(R.raw.raw_devil);
 
@@ -112,6 +105,25 @@ public class MainActivity extends AppCompatActivity {
 
         mSOHandleList[0] = mSoundEngine.makeNewSO(1000, 50, 15, mSoundArray);
 
+    }
+
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        //        TODO head 이미지 중심 으로 만들고 좌표 구하기
+        ImageView headImageView = (ImageView) findViewById(R.id.head);
+        int width = headImageView.getRight() - headImageView.getLeft();
+        int height = headImageView.getBottom() - headImageView.getTop();
+        RelativeLayout parentLayout = (RelativeLayout) headImageView.getParent();
+        int parentWidth =  parentLayout.getWidth();
+        int parentHeight = parentLayout.getHeight();
+
+        headImageView.setX(parentWidth/2 - width/2);
+        headImageView.setY(parentHeight/2 -height/2);
+        mHeadXcor = headImageView.getX();
+        mHeadYcor = headImageView.getY();
+        Log.i(TAG, "onWindowFocusChanged: head x : " + mHeadXcor + " y : " + mHeadYcor);
     }
 
     private void initTextView() {
