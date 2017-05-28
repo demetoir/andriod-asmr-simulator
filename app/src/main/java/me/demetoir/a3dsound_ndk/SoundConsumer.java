@@ -49,7 +49,7 @@ class SoundConsumer extends Thread {
                 outputSound = mSoundBuffer.popBuffer();
             }
             mAudioTrack.write(outputSound, 0, outputSound.length,
-                    AudioTrack.WRITE_NON_BLOCKING);
+                    AudioTrack.WRITE_BLOCKING);
 //            long start = System.currentTimeMillis();
 //            Log.i(TAG, "cunsumProcess: time = " + (end - start) / 1000.0);
 

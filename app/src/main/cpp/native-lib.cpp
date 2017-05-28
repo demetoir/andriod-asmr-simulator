@@ -39,8 +39,8 @@ int getAngleIndex(double angle) {
 
 #define MAX_DISTANCE 30
 
-#define PUSHABLE_SIZE_PER_CHANNEL 64
-#define PUSHABLE_SIZE 128
+#define PUSHABLE_SIZE_PER_CHANNEL 128
+#define PUSHABLE_SIZE 256
 JNIEXPORT jfloatArray JNICALL
 Java_me_demetoir_a3dsound_1ndk_SoundProvider_convProcess(
         JNIEnv *env,
@@ -65,12 +65,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundProvider_convProcess(
         obejct.mixedOutput[i * 2] = (float) (leftOut * ((MAX_DISTANCE - obejct.distance) / MAX_DISTANCE));
         obejct.mixedOutput[i * 2 + 1] = (float) (rightOut * ((MAX_DISTANCE - obejct.distance) / MAX_DISTANCE));
     }
-
-//    for (int i = 0; i < PUSHABLE_SIZE_PER_CHANNEL; i++) {
-//        obejct.mixedOutput[i * 2] = obejct.inputSound[(obejct.head + i) % obejct.inputSoundSize];
-//        obejct.mixedOutput[i * 2 + 1] = obejct.inputSound[(obejct.head + i) %
-//                                                          obejct.inputSoundSize];
-//    }
 
     jfloatArray ret = env->NewFloatArray(PUSHABLE_SIZE);
     env->SetFloatArrayRegion(ret, 0, PUSHABLE_SIZE, obejct.mixedOutput);
@@ -101,7 +95,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_loadHRTF(
             hrtf_database.rightHRTF[angleIndex_j][i] = hrtf[i];
         }
     }
-
 
     env->ReleaseFloatArrayElements(HRTF_database_j, hrtf, 0);
     return;
