@@ -1,7 +1,7 @@
 package me.demetoir.a3dsound_ndk;
 
-        import android.media.AudioTrack;
-        import android.util.Log;
+import android.media.AudioTrack;
+import android.util.Log;
 
 
 class SoundEngine {
@@ -13,6 +13,7 @@ class SoundEngine {
     }
 
     private final static int MAX_SPOHANDLE_SIZE = 10;
+    private final static int DEFAULT_SO_HANDLE = 0;
 
     private SoundProvider mProvider;
     private SoundConsumer mConsumer;
@@ -29,26 +30,26 @@ class SoundEngine {
         SPOHandleList = new int[MAX_SPOHANDLE_SIZE];
 
         mConsumer = new SoundConsumer(mSoundBuffer, mAudioTrack);
-        mProvider = new SoundProvider(mSoundBuffer, 0);
+        mProvider = new SoundProvider(mSoundBuffer, DEFAULT_SO_HANDLE);
         mIsPlaying = false;
     }
 
-    public void loadHRTF_database(float[][] rightHRTF_database,
-                                  float[][] leftHRTF_database,
-                                  int angleIndexSize) {
+    void loadHRTF_database(float[][] rightHRTF_database,
+                           float[][] leftHRTF_database,
+                           int angleIndexSize) {
         for (int angle = 0; angle < angleIndexSize; angle++) {
             loadHRTF(rightHRTF_database[angle], angle, 0);
             loadHRTF(leftHRTF_database[angle], angle, 1);
         }
     }
 
-    public void start() {
+    void start() {
         if (mIsPlaying) return;
         mIsPlaying = true;
 
         mAudioTrack.play();
         mProvider.startProviding();
-        mConsumer.startConsumming();
+        mConsumer.startConsuming();
         try {
             mProvider.setPriority(7);
             mProvider.start();
@@ -70,17 +71,16 @@ class SoundEngine {
 
     }
 
-    // TODO test please
-    public void stop() {
+    void stop() {
         mProvider.stopProviding();
-        mConsumer.stopConsumming();
+        mConsumer.stopConsuming();
         mIsPlaying = false;
     }
 
 
-    public int makeNewSO(int x_size_j, double x_j, double y_j, float[] sound_j) {
+    int makeNewSO(int x_size_j, double x_j, double y_j, float[] sound_j) {
         int SOhandle = initSoundObject(x_size_j, x_j, y_j, sound_j);
-        SPOHandleList[0] = SOhandle;
+        SPOHandleList[DEFAULT_SO_HANDLE] = SOhandle;
         return SOhandle;
     }
 
@@ -98,7 +98,7 @@ class SoundEngine {
 
     public native void setSOX(int handle_j, double x_j);
 
-    public native double  getSOX( int handle_j);
+    public native double getSOX(int handle_j);
 
     public native void setSOY(int handle_j, double y_j);
 

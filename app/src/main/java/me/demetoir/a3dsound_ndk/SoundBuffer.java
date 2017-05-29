@@ -6,7 +6,7 @@ import java.nio.FloatBuffer;
 class SoundBuffer {
     private final static String TAG = "SoundBuffer";
 
-    private final static int BUFFER_SIZE = 2048*32 ;
+    private final static int BUFFER_SIZE = 2048 ;
     private final static int CHANNEL_SIZE = 2;
     private final static int PUSHABLE_SIZE_PER_CHANNEL = 128;
     private final static int PUSHABLE_SIZE = PUSHABLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;

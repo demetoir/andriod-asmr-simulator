@@ -48,7 +48,6 @@ typedef struct {
 
 HRTF_DATABASE hrtf_database;
 
-//TODO implement here
 int getAngleIndex(double angle) {
     if (angle < 0) angle = -angle;
 
@@ -74,38 +73,39 @@ void updateAngle(int handle){
 
 #define PUSHABLE_SIZE_PER_CHANNEL 64
 #define PUSHABLE_SIZE 128
-JNIEXPORT jfloatArray JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundProvider_convProcess(
-        JNIEnv *env,
-        jobject instance, /* this */
-        jint SOHandle_j) {
-    SoundObejct &obejct = SOList[SOHandle_j];
 
-//    LOGI("JNI log angle : %lf,  angle index: %d ",obejct.angle, getAngleIndex(obejct.angle));
+JNIEXPORT jfloatArray JNICALL
+Java_me_demetoir_a3dsound_1ndk_SoundProvider_signalProcess(
+        JNIEnv *env,
+        jobject , /* this */
+        jint SOHandle_j) {
+    SoundObejct & object = SOList[SOHandle_j];
+
+//    LOGI("JNI log angle : %lf,  angle index: %d ",object.angle, getAngleIndex(object.angle));
 
     for (int i = 0; i < PUSHABLE_SIZE_PER_CHANNEL; i++) {
         // delay
         for (int j = hrtf_database.HRTF_SIZE - 1; j >= 0; j--) {
-            obejct.x[j] = obejct.x[j - 1];
+            object.x[j] = object.x[j - 1];
         }
-        obejct.x[0] = obejct.inputSound[(i + obejct.head) % obejct.inputSoundSize];
+        object.x[0] = object.inputSound[(i + object.head) % object.inputSoundSize];
 
         float leftOut = 0;
         float rightOut = 0;
-        int angleIdx = getAngleIndex(obejct.angle);
+        int angleIdx = getAngleIndex(object.angle);
         for (int j = 0; j < hrtf_database.HRTF_SIZE; j++) {
-            leftOut += obejct.x[j] * hrtf_database.leftHRTF[angleIdx][j];
-            rightOut += obejct.x[j] * hrtf_database.rightHRTF[angleIdx][j];
+            leftOut += object.x[j] * hrtf_database.leftHRTF[angleIdx][j];
+            rightOut += object.x[j] * hrtf_database.rightHRTF[angleIdx][j];
         }
-        obejct.mixedOutput[i * 2] = (float) (leftOut *
-                                             ((MAX_DISTANCE - obejct.distance) / MAX_DISTANCE));
-        obejct.mixedOutput[i * 2 + 1] = (float) (rightOut *
-                                                 ((MAX_DISTANCE - obejct.distance) / MAX_DISTANCE));
+        object.mixedOutput[i * 2] = (float) (leftOut *
+                                             ((MAX_DISTANCE - object.distance) / MAX_DISTANCE));
+        object.mixedOutput[i * 2 + 1] = (float) (rightOut *
+                                                 ((MAX_DISTANCE - object.distance) / MAX_DISTANCE));
     }
 
     jfloatArray ret = env->NewFloatArray(PUSHABLE_SIZE);
-    env->SetFloatArrayRegion(ret, 0, PUSHABLE_SIZE, obejct.mixedOutput);
-    obejct.head = (PUSHABLE_SIZE_PER_CHANNEL + obejct.head) % obejct.inputSoundSize;
+    env->SetFloatArrayRegion(ret, 0, PUSHABLE_SIZE, object.mixedOutput);
+    object.head = (PUSHABLE_SIZE_PER_CHANNEL + object.head) % object.inputSoundSize;
 
     return ret;
 }
@@ -140,6 +140,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_loadHRTF(
 
 //TODO 파일 분리 하는방법 알아두기
 int getNewSPOHANDLE() {
+
     return 0;
 }
 
@@ -189,7 +190,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOAngle
          jint handle_j,
          jdouble angle_j) {
 
-    // TODO
     SOList[handle_j].angle = angle_j;
 }
 
@@ -199,7 +199,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOAngle(
         jobject instance,
         jint handle_j) {
 
-    // TODO
     return SOList[handle_j].angle;
 }
 
@@ -210,7 +209,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSODistance(
         jint handle_j,
         jdouble distance_j) {
 
-    // TODO
     SOList[handle_j].distance = distance_j;
 }
 
@@ -220,7 +218,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSODistance(
         jobject instance,
         jint handle_j) {
 
-    // TODO
     return (jint) SOList[handle_j].distance;
 }
 

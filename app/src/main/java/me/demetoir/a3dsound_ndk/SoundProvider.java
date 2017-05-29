@@ -2,7 +2,7 @@ package me.demetoir.a3dsound_ndk;
 
 class SoundProvider extends Thread {
     private final static String TAG = "SoundProvider";
-
+    private final static int THREAD_WAKE_UP_TIME = 100;
     static {
         System.loadLibrary("native-lib");
     }
@@ -18,26 +18,21 @@ class SoundProvider extends Thread {
     }
 
     private void providerProcess() {
-//        Log.i(TAG, "providerProcess: start");
         while (true) {
             if (!mIsProviding) {
                 try {
-                    sleep(100);
+                    sleep(THREAD_WAKE_UP_TIME);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 continue;
             }
-//            long start = System.currentTimeMillis();
 
             if (!mSoundBuffer.isPushAble()) continue;
 
             synchronized (this) {
-                mSoundBuffer.pushBuffer(convProcess(mSOHandle));
+                mSoundBuffer.pushBuffer(signalProcess(mSOHandle));
             }
-
-//            long end = System.currentTimeMillis();
-//            Log.i(TAG, "providerProcess: time " + (end - start) / 1000.0);
         }
     }
 
@@ -55,6 +50,6 @@ class SoundProvider extends Thread {
         mIsProviding = false;
     }
 
-    public native float[] convProcess(int SOHandle_j);
+    public native float[] signalProcess(int SOHandle_j);
 
 }

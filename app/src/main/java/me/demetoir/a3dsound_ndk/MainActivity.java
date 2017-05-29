@@ -29,21 +29,19 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
+    public static final float DEFAULT_VOLUME = 3.0f;
+
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
     }
 
-    private final static double MAX_ANGLE = 360;
 
-    public static final int ANGLE_COMPENSATOR_VAL = 50;
-    private final static int TOTAL_ANGLE_STEP = 20;
     private final static int SAMPLING_RATE = 44100;
-    private final static double MAX_DISTANCE = 10;
-    private final static int BUFFER_SIZE = 2048;
     private final static int MAX_ANGLE_INDEX_SIZE = 100;
     private final static int HTRF_SIZE = 200;
     private final static int MAX_SOHANDLE_SIZE = 10;
+    private final static int DEFAULT_SO_HANDLE = 0;
 
     private double mAngle;
     private double mDistance;
@@ -63,11 +61,6 @@ public class MainActivity extends AppCompatActivity {
     // BUTTTON
     private Button mPlayBtn;
     private Button mStopBtn;
-    private Button mCCWBtn;
-    private Button mCWBtn;
-    private Button mDistIncBtn;
-
-    private Button mDistDecBtn;
 
     // TEXTView
     private TextView mAngleTextView;
@@ -78,20 +71,26 @@ public class MainActivity extends AppCompatActivity {
     // IMAGEView
     private ImageView mSoundSourceimageView;
 
+    public MainActivity() {
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //상태표시줄 제거
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        //화면 회전 고정
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
         initButtons();
         initTextView();
 
-        mSoundSourceimageView = (ImageView) findViewById(R.id.sound_source);
+
         //set image round
+        mSoundSourceimageView = (ImageView) findViewById(R.id.sound_source);
         mSoundSourceimageView.setBackground(new ShapeDrawable(new OvalShape()));
         mSoundSourceimageView.setClipToOutline(true);
         mSoundSourceimageView.setOnTouchListener(onTouchListener);
@@ -108,18 +107,18 @@ public class MainActivity extends AppCompatActivity {
                 loadHRTFdatabase(R.raw.right_hrtf_database),
                 MAX_ANGLE_INDEX_SIZE);
 
-        mSOHandleList[0] = mSoundEngine.makeNewSO(1000, 0, 0, mSoundArray);
-
+        mSOHandleList[DEFAULT_SO_HANDLE] = mSoundEngine.makeNewSO(1000, 0, 0, mSoundArray);
     }
 
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        //        TODO head 이미지 중심 으로 만들고 좌표 구하기
+
         ImageView headImageView = (ImageView) findViewById(R.id.head);
         int width = headImageView.getRight() - headImageView.getLeft();
         int height = headImageView.getBottom() - headImageView.getTop();
+
         RelativeLayout parentLayout = (RelativeLayout) headImageView.getParent();
         int parentWidth = parentLayout.getWidth();
         int parentHeight = parentLayout.getHeight();
@@ -128,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
         headImageView.setY(parentHeight / 2 - height / 2);
         mHeadXcor = parentWidth / 2;
         mHeadYcor = parentHeight / 2;
-        Log.i(TAG, "onWindowFocusChanged: head x : " + mHeadXcor + " y : " + mHeadYcor);
 
         mSoundSourceimageView.setX(mHeadXcor - mSoundSourceimageView.getWidth() / 2);
         mSoundSourceimageView.setY(mHeadYcor - mSoundSourceimageView.getHeight() / 2);
@@ -136,11 +134,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void initTextView() {
         mAngleTextView = (TextView) findViewById(R.id.angleText);
-        mAngle = 50;
+        mAngle = 0;
         updateAngleTextView();
 
         mDistanceTextView = (TextView) findViewById(R.id.distanceTextView);
-        mDistance = 15;
+        mDistance = 0;
         updateDistanceTextView();
 
         mXcorTextView = (TextView) findViewById(R.id.XcorTextView);
@@ -179,17 +177,8 @@ public class MainActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     void initAudioTrack() {
-        //init m
-//        int minSize = SAMPLING_RATE;
         int minSize = AudioTrack.getMinBufferSize(SAMPLING_RATE,
                 AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_FLOAT);
-        Log.i(TAG, "initAudioTrack: minsize " + minSize);
-//        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-//                SAMPLING_RATE,
-//                AudioFormat.CHANNEL_OUT_MONO,
-//                AudioFormat.ENCODING_PCM_16BIT,
-//                minSize,
-//                AudioTrack.MODE_STREAM);
 
         mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
                 SAMPLING_RATE,
@@ -198,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
                 minSize,
                 AudioTrack.MODE_STREAM);
 
-        mAudioTrack.setVolume(3.0f);
+        mAudioTrack.setVolume(DEFAULT_VOLUME);
     }
 
 
@@ -226,12 +215,9 @@ public class MainActivity extends AppCompatActivity {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 mOldXcor = event.getX();
                 mOldYcor = event.getY();
-//                Log.i(TAG, "Action Down X" + event.getX() + "," + event.getY());
-//                Log.i(TAG, "Action Down rX " + event.getRawX() + "," + event.getRawY());
             } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                 v.setX(event.getRawX() - mOldXcor);
-                v.setY(event.getRawY() - (mOldYcor + v.getHeight()));
-//                  Log.i(TAG, "Action Down " + me.getRawX() + "," + me.getRawY());
+                v.setY(event.getRawY() - (mOldYcor ));
             } else if (event.getAction() == MotionEvent.ACTION_UP) {
                 if (v.getX() > width && v.getY() > height) {
                     v.setX(width);
@@ -269,12 +255,11 @@ public class MainActivity extends AppCompatActivity {
             updateXcorTextView();
             updateYcorTextView();
 
-            mSoundEngine.setSOX(0, mSOXcor);
-            mSoundEngine.setSOY(0, mSOYcor);
+            mSoundEngine.setSOX(DEFAULT_SO_HANDLE, mSOXcor);
+            mSoundEngine.setSOY(DEFAULT_SO_HANDLE, mSOYcor);
 
-
-            mAngle = mSoundEngine.getSOAngle(0);
-            mDistance = mSoundEngine.getSODistance(0);
+            mAngle = mSoundEngine.getSOAngle(DEFAULT_SO_HANDLE);
+            mDistance = mSoundEngine.getSODistance(DEFAULT_SO_HANDLE);
             updateAngleTextView();
             updateDistanceTextView();
 
@@ -348,6 +333,7 @@ public class MainActivity extends AppCompatActivity {
         return shortToFloat(monoSound);
     }
 
+
     float[] shortToFloat(short[] shorts) {
         int size = shorts.length;
         float[] floats = new float[size];
@@ -357,5 +343,4 @@ public class MainActivity extends AppCompatActivity {
         }
         return floats;
     }
-
 }

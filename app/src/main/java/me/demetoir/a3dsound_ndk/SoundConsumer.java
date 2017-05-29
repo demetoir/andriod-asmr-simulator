@@ -8,36 +8,36 @@ import android.support.annotation.RequiresApi;
 class SoundConsumer extends Thread {
     private final static String TAG = "SoundConsumer";
 
+    private final static int THREAD_WAKE_UP_TIME = 100;
     static {
         System.loadLibrary("native-lib");
     }
 
     SoundBuffer mSoundBuffer;
     AudioTrack mAudioTrack;
-    boolean mIsConsumming;
+    boolean mIsConsuming;
 
     SoundConsumer(SoundBuffer mSoundBuffer, AudioTrack audioTrack) {
         this.mSoundBuffer = mSoundBuffer;
         this.mAudioTrack = audioTrack;
-        this.mIsConsumming = false;
-
+        this.mIsConsuming = false;
     }
 
-    void startConsumming() {
-        mIsConsumming = true;
+    void startConsuming() {
+        mIsConsuming = true;
     }
 
-    void stopConsumming() {
-        mIsConsumming = false;
+    void stopConsuming() {
+        mIsConsuming = false;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void soundProcess() {
         float[] outputSound;
         while (true) {
-            if (!mIsConsumming){
+            if (!mIsConsuming){
                 try {
-                    sleep(100);
+                    sleep(THREAD_WAKE_UP_TIME);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -48,16 +48,14 @@ class SoundConsumer extends Thread {
                 continue;
             }
 
-//            long end = System.currentTimeMillis();
             synchronized (this) {
                 outputSound = mSoundBuffer.popBuffer();
             }
-            mAudioTrack.write(outputSound, 0, outputSound.length,
+            mAudioTrack.write(
+                    outputSound,
+                    0,
+                    outputSound.length,
                     AudioTrack.WRITE_BLOCKING);
-//            long start = System.currentTimeMillis();
-//            Log.i(TAG, "cunsumProcess: time = " + (end - start) / 1000.0);
-
-
         }
     }
 
