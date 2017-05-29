@@ -1,7 +1,7 @@
 package me.demetoir.a3dsound_ndk;
 
-import android.media.AudioTrack;
-import android.util.Log;
+        import android.media.AudioTrack;
+        import android.util.Log;
 
 
 class SoundEngine {
@@ -78,15 +78,15 @@ class SoundEngine {
     }
 
 
-    public int makeNewSO(int x_size_j, double angle_j, double distance_j, float[] sound_j) {
-        int SOhandle = initSoundObject(x_size_j, angle_j, distance_j, sound_j);
+    public int makeNewSO(int x_size_j, double x_j, double y_j, float[] sound_j) {
+        int SOhandle = initSoundObject(x_size_j, x_j, y_j, sound_j);
         SPOHandleList[0] = SOhandle;
         return SOhandle;
     }
 
     private native void loadHRTF(float[] HRTF_database_j, int angleIndex_j, int channel);
 
-    private native int initSoundObject(int x_size_j, double angle_j, double distance_j, float[] sound_j);
+    private native int initSoundObject(int x_size_j, double x_j, double y_j, float[] sound_j);
 
     public native void setSOAngle(int handle_j, double angle_j);
 
@@ -95,4 +95,12 @@ class SoundEngine {
     public native void setSODistance(int handle_j, double distance_j);
 
     public native double getSODistance(int handle_j);
+
+    public native void setSOX(int handle_j, double x_j);
+
+    public native double  getSOX( int handle_j);
+
+    public native void setSOY(int handle_j, double y_j);
+
+    public native double getSOY(int handle_j);
 }

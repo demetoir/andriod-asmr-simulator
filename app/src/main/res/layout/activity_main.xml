@@ -17,13 +17,13 @@
             android:id="@+id/SimulatorMonitorLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="18">
+            android:layout_weight="20">
 
             <ImageView
                 android:id="@+id/head"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@mipmap/ic_launcher" />
+                android:src="@drawable/head" />
 
             <ImageView
                 android:id="@+id/sound_source"
@@ -102,53 +102,6 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:weightSum="2">
-
-            <Button
-                android:id="@+id/moveCounterClockWise"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/moveCounterClockWiseButtonText" />
-
-            <Button
-                android:id="@+id/moveClockWise"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/moveClockWisebuttonText" />
-
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:weightSum="2">
-
-            <Button
-                android:id="@+id/distanceIncrease"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/distance_increaseBtnText" />
-
-            <Button
-                android:id="@+id/distanceDecrease"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/distance_decreaseBtnText" />
-        </LinearLayout>
 
 
     </LinearLayout>

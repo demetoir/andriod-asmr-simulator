@@ -1,5 +1,6 @@
 package me.demetoir.a3dsound_ndk;
 
+import android.content.pm.ActivityInfo;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.media.AudioFormat;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -27,13 +29,14 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
-
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
     }
 
     private final static double MAX_ANGLE = 360;
+
+    public static final int ANGLE_COMPENSATOR_VAL = 50;
     private final static int TOTAL_ANGLE_STEP = 20;
     private final static int SAMPLING_RATE = 44100;
     private final static double MAX_DISTANCE = 10;
@@ -79,6 +82,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
         initButtons();
@@ -89,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
         mSoundSourceimageView.setBackground(new ShapeDrawable(new OvalShape()));
         mSoundSourceimageView.setClipToOutline(true);
         mSoundSourceimageView.setOnTouchListener(onTouchListener);
-
 
 
         mSoundArray = loadMonoSound(R.raw.raw_devil);
@@ -103,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 loadHRTFdatabase(R.raw.right_hrtf_database),
                 MAX_ANGLE_INDEX_SIZE);
 
-        mSOHandleList[0] = mSoundEngine.makeNewSO(1000, 50, 15, mSoundArray);
+        mSOHandleList[0] = mSoundEngine.makeNewSO(1000, 0, 0, mSoundArray);
 
     }
 
@@ -116,14 +121,17 @@ public class MainActivity extends AppCompatActivity {
         int width = headImageView.getRight() - headImageView.getLeft();
         int height = headImageView.getBottom() - headImageView.getTop();
         RelativeLayout parentLayout = (RelativeLayout) headImageView.getParent();
-        int parentWidth =  parentLayout.getWidth();
+        int parentWidth = parentLayout.getWidth();
         int parentHeight = parentLayout.getHeight();
 
-        headImageView.setX(parentWidth/2 - width/2);
-        headImageView.setY(parentHeight/2 -height/2);
-        mHeadXcor = headImageView.getX();
-        mHeadYcor = headImageView.getY();
+        headImageView.setX(parentWidth / 2 - width / 2);
+        headImageView.setY(parentHeight / 2 - height / 2);
+        mHeadXcor = parentWidth / 2;
+        mHeadYcor = parentHeight / 2;
         Log.i(TAG, "onWindowFocusChanged: head x : " + mHeadXcor + " y : " + mHeadYcor);
+
+        mSoundSourceimageView.setX(mHeadXcor - mSoundSourceimageView.getWidth() / 2);
+        mSoundSourceimageView.setY(mHeadYcor - mSoundSourceimageView.getHeight() / 2);
     }
 
     private void initTextView() {
@@ -149,62 +157,11 @@ public class MainActivity extends AppCompatActivity {
         mStopBtn = (Button) findViewById(R.id.stopButton);
         mStopBtn.setOnClickListener(mStopBtnOnClickListener);
 
-        mCCWBtn = (Button) findViewById(R.id.moveCounterClockWise);
-        mCCWBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int angleIdx = (int) mSoundEngine.getSOAngle(0);
-                if (angleIdx - 4 >= 0) {
-                    mSoundEngine.setSOAngle(0, angleIdx - 4);
-                    mAngle = angleIdx - 4;
-                    updateAngleTextView();
-                }
-            }
-        });
-
-        mCWBtn = (Button) findViewById(R.id.moveClockWise);
-        mCWBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int angleIdx = (int) mSoundEngine.getSOAngle(0);
-                if (angleIdx + 4 <= 99) {
-                    mSoundEngine.setSOAngle(0, angleIdx + 4);
-                    mAngle = angleIdx + 4;
-                    updateAngleTextView();
-                }
-            }
-        });
-
-        mDistIncBtn = (Button) findViewById(R.id.distanceIncrease);
-        mDistIncBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                double dist = mSoundEngine.getSODistance(0);
-                if (dist + 2 <= 30 - 1) {
-                    mSoundEngine.setSODistance(0, dist + 2);
-                    mDistance = dist + 2;
-                    updateDistanceTextView();
-                }
-            }
-        });
-
-        mDistDecBtn = (Button) findViewById(R.id.distanceDecrease);
-        mDistDecBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                double dist = mSoundEngine.getSODistance(0);
-                if (dist - 2 > 0) {
-                    mSoundEngine.setSODistance(0, dist - 2);
-                    mDistance = dist - 2;
-                    updateDistanceTextView();
-                }
-            }
-        });
     }
 
     private void updateAngleTextView() {
         mAngleTextView.setText(String.format(getResources().getString(R.string.textAngleFormat),
-                mAngle - 50));
+                mAngle));
     }
 
     private void updateDistanceTextView() {
@@ -263,7 +220,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageView.OnTouchListener onTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-            Log.i(TAG, "onTouch: listener start");
             int width = ((ViewGroup) v.getParent()).getWidth() - v.getWidth();
             int height = ((ViewGroup) v.getParent()).getHeight() - v.getHeight();
 
@@ -308,11 +264,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            mSOXcor = v.getX();
-            mSOYcor = v.getY();
+            mSOXcor = v.getX() - (mHeadXcor) + v.getWidth() / 2;
+            mSOYcor = -(v.getY() - (mHeadYcor)) - v.getHeight() / 2;
             updateXcorTextView();
             updateYcorTextView();
-            Log.i(TAG, "onTouch: listener end");
+
+            mSoundEngine.setSOX(0, mSOXcor);
+            mSoundEngine.setSOY(0, mSOYcor);
+
+
+            mAngle = mSoundEngine.getSOAngle(0);
+            mDistance = mSoundEngine.getSODistance(0);
+            updateAngleTextView();
+            updateDistanceTextView();
+
             return true;
         }
     };
