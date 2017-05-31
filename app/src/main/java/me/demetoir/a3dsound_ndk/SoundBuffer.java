@@ -6,12 +6,12 @@ import java.nio.FloatBuffer;
 class SoundBuffer {
     private final static String TAG = "SoundBuffer";
 
-    private final static int BUFFER_SIZE = 2048 ;
+    private final static int BUFFER_SIZE = 1024*8 ;
     private final static int CHANNEL_SIZE = 2;
-    private final static int PUSHABLE_SIZE_PER_CHANNEL = 128;
-    private final static int PUSHABLE_SIZE = PUSHABLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
-    private final static int POPABBLE_SIZE_PER_CHANNEL = 128;
-    private final static int POPABLE_SIZE = POPABBLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
+    private final static int PUSHABLE_SIZE_PER_CHANNEL = 64;
+    public final static int PUSHABLE_SIZE = PUSHABLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
+    private final static int POPABBLE_SIZE_PER_CHANNEL = 64;
+    public final static int POPABLE_SIZE = POPABBLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
 
     private FloatBuffer mBuffer;
     private float[] mTempBuf;
@@ -42,5 +42,12 @@ class SoundBuffer {
         synchronized (this) {
             mBuffer.put(floats);
         }
+    }
+
+    public int getPushableSize(){
+        return this.mBuffer.remaining();
+    }
+    public FloatBuffer getmBuffer(){
+        return mBuffer;
     }
 }

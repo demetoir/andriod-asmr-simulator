@@ -16,11 +16,16 @@ class SoundConsumer extends Thread {
     SoundBuffer mSoundBuffer;
     AudioTrack mAudioTrack;
     boolean mIsConsuming;
+    SoundProvider mSoundProvider;
 
     SoundConsumer(SoundBuffer mSoundBuffer, AudioTrack audioTrack) {
         this.mSoundBuffer = mSoundBuffer;
         this.mAudioTrack = audioTrack;
         this.mIsConsuming = false;
+    }
+
+    void addSoundProvider(SoundProvider soundProvider){
+        mSoundProvider = soundProvider;
     }
 
     void startConsuming() {
@@ -48,14 +53,15 @@ class SoundConsumer extends Thread {
                 continue;
             }
 
-            synchronized (this) {
-                outputSound = mSoundBuffer.popBuffer();
-            }
+            outputSound = mSoundBuffer.popBuffer();
             mAudioTrack.write(
                     outputSound,
                     0,
                     outputSound.length,
                     AudioTrack.WRITE_BLOCKING);
+//            synchronized (mSoundProvider) {
+//                mSoundProvider.notify();
+//            }
         }
     }
 
