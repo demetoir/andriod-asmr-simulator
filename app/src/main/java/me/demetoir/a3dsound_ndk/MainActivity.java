@@ -1,5 +1,6 @@
 package me.demetoir.a3dsound_ndk;
 
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
@@ -16,12 +17,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -68,8 +72,12 @@ public class MainActivity extends AppCompatActivity {
     private TextView mDistanceTextView;
     private TextView mXcorTextView;
     private TextView mYcorTextView;
+
     // IMAGEView
     private ImageView mSoundSourceimageView;
+
+    private OrbitView mOrbitView;
+
 
     public MainActivity() {
     }
@@ -88,12 +96,8 @@ public class MainActivity extends AppCompatActivity {
         initButtons();
         initTextView();
 
+        soundSourceCheck();
 
-        //set image round
-        mSoundSourceimageView = (ImageView) findViewById(R.id.sound_source);
-        mSoundSourceimageView.setBackground(new ShapeDrawable(new OvalShape()));
-        mSoundSourceimageView.setClipToOutline(true);
-        mSoundSourceimageView.setOnTouchListener(onTouchListener);
 
 
         mSoundArray = loadMonoSound(R.raw.raw_devil);
@@ -108,6 +112,18 @@ public class MainActivity extends AppCompatActivity {
                 MAX_ANGLE_INDEX_SIZE);
 
         mSOHandleList[DEFAULT_SO_HANDLE] = mSoundEngine.makeNewSO(1000, 0, 0, mSoundArray);
+
+
+
+        mOrbitView = new OrbitView(this);
+        ((FrameLayout) findViewById(R.id.MainActivityFrameLayout)).addView(mOrbitView);
+
+        //set image round
+        mSoundSourceimageView = (ImageView) findViewById(R.id.sound_source);
+        mSoundSourceimageView.setBackground(new ShapeDrawable(new OvalShape()));
+        mSoundSourceimageView.setClipToOutline(true);
+        mSoundSourceimageView.setOnTouchListener(onTouchListener);
+
     }
 
 
@@ -130,6 +146,10 @@ public class MainActivity extends AppCompatActivity {
 
         mSoundSourceimageView.setX(mHeadXcor - mSoundSourceimageView.getWidth() / 2);
         mSoundSourceimageView.setY(mHeadYcor - mSoundSourceimageView.getHeight() / 2);
+//
+        mOrbitView.setX(mHeadXcor);
+        mOrbitView.setY(mHeadYcor);
+
     }
 
     private void initTextView() {
@@ -175,6 +195,42 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void soundSourceCheck() {
+        String strbellPath = "/data/data/me.demetoir.a3dsound_ndk/files/raw_devil.snd";
+        try {
+            CopyIfNotExist(R.raw.raw_devil, strbellPath);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+
+    public void CopyIfNotExist(int resID, String target) throws IOException {
+        File targetFile = new File(target);
+        if (!targetFile.exists()) {
+            Log.i(TAG, "CopyIfNotExist: file not exist");
+            CopyFromPackage(resID, targetFile.getName());
+        } else {
+            Log.i(TAG, "CopyIfNotExist: file exist");
+        }
+    }
+
+    public void CopyFromPackage(int resID, String target) throws IOException {
+        FileOutputStream lOutputStream = openFileOutput(target, Context.MODE_PRIVATE);
+        InputStream lInputStream = getResources().openRawResource(resID);
+        int readByte;
+        byte[] buff = new byte[8048];
+
+        while ((readByte = lInputStream.read(buff)) != -1) {
+            lOutputStream.write(buff, 0, readByte);
+        }
+
+        lOutputStream.flush();
+        lOutputStream.close();
+        lInputStream.close();
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     void initAudioTrack() {
         int minSize = AudioTrack.getMinBufferSize(SAMPLING_RATE,
@@ -217,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
                 mOldYcor = event.getY();
             } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
                 v.setX(event.getRawX() - mOldXcor);
-                v.setY(event.getRawY() - (mOldYcor ));
+                v.setY(event.getRawY() - mOldYcor);
             } else if (event.getAction() == MotionEvent.ACTION_UP) {
                 if (v.getX() > width && v.getY() > height) {
                     v.setX(width);
@@ -263,6 +319,8 @@ public class MainActivity extends AppCompatActivity {
             updateAngleTextView();
             updateDistanceTextView();
 
+            mOrbitView.setRadius((float) mDistance);
+            mOrbitView.invalidate();
             return true;
         }
     };
@@ -299,6 +357,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "loadHRTFdatabase: load end");
         return HRTFdatabase;
     }
+
 
     float[] loadMonoSound(int monoSoundResId) {
         short[] monoSound;
@@ -343,4 +402,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return floats;
     }
+
+
 }

@@ -51,17 +51,20 @@ HRTF_DATABASE hrtf_database;
 int getAngleIndex(double angle) {
     if (angle < 0) angle = -angle;
 
-    return (int)((angle/180.0)*100);
+    return (int) ((angle / 180.0) * 100);
 }
 
-
-void updateDistance(int handle){
+#define MAX_DISTANCE 400
+void updateDistance(int handle) {
     double x = SOList[handle].xCor;
     double y = SOList[handle].yCor;
     SOList[handle].distance = sqrt(x * x + y * y);
+    if(SOList[handle].distance > MAX_DISTANCE){
+        SOList[handle].distance = MAX_DISTANCE;
+    }
 }
 
-void updateAngle(int handle){
+void updateAngle(int handle) {
     double x = SOList[handle].xCor;
     double y = SOList[handle].yCor;
     SOList[handle].angle = (atan2(y, x) * 180) / M_PI;
@@ -69,17 +72,15 @@ void updateAngle(int handle){
 
 
 
-#define MAX_DISTANCE 300
-
 #define PUSHABLE_SIZE_PER_CHANNEL 64
 #define PUSHABLE_SIZE 128
 
 JNIEXPORT jfloatArray JNICALL
 Java_me_demetoir_a3dsound_1ndk_SoundProvider_signalProcess(
         JNIEnv *env,
-        jobject , /* this */
+        jobject, /* this */
         jint SOHandle_j) {
-    SoundObejct & object = SOList[SOHandle_j];
+    SoundObejct &object = SOList[SOHandle_j];
 
 //    LOGI("JNI log angle : %lf,  angle index: %d ",object.angle, getAngleIndex(object.angle));
 
@@ -229,13 +230,11 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOX(
         jint handle_j,
         jdouble x_j) {
 
-    if(x_j> MAX_DISTANCE)
-        x_j = MAX_DISTANCE;
-
     SoundObejct &object = SOList[handle_j];
     object.xCor = x_j;
     updateAngle(handle_j);
     updateDistance(handle_j);
+
 }
 
 JNIEXPORT jdouble JNICALL
@@ -255,13 +254,11 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOY(
         jint handle_j,
         jdouble y_j) {
 
-    if(y_j > MAX_DISTANCE)
-        y_j = MAX_DISTANCE;
-
     SoundObejct &object = SOList[handle_j];
     object.yCor = y_j;
     updateAngle(handle_j);
     updateDistance(handle_j);
+
 }
 
 JNIEXPORT jdouble JNICALL
@@ -273,6 +270,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOY(
     SoundObejct &object = SOList[handle_j];
     return object.yCor;
 }
+
 
 
 ///test funciton
