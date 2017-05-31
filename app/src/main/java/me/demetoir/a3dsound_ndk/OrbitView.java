@@ -19,6 +19,7 @@ class OrbitView extends View {
     private float x;
     private float y;
     private float radius;
+    private boolean mIsTouching;
 
     public OrbitView(Context context) {
         super(context);
@@ -42,6 +43,7 @@ class OrbitView extends View {
         this.initX = 0;
         this.initY = 0;
         this.radius = 0;
+        mIsTouching = false;
     }
 
     @Override
@@ -85,5 +87,13 @@ class OrbitView extends View {
 
     public float getRadius() {
         return this.radius;
+    }
+
+    public void setIsTouching(boolean flag){
+        mIsTouching = flag;
+    }
+
+    public boolean getIsTouching(){
+        return mIsTouching;
     }
 }

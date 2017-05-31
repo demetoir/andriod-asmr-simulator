@@ -59,9 +59,9 @@ class SoundConsumer extends Thread {
                     0,
                     outputSound.length,
                     AudioTrack.WRITE_BLOCKING);
-//            synchronized (mSoundProvider) {
-//                mSoundProvider.notify();
-//            }
+            synchronized (mSoundProvider) {
+                mSoundProvider.notify();
+            }
         }
     }
 

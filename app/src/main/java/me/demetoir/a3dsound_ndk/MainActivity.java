@@ -98,6 +98,14 @@ public class MainActivity extends AppCompatActivity {
 
         soundSourceCheck();
 
+        mOrbitView = new OrbitView(this);
+        ((FrameLayout) findViewById(R.id.MainActivityFrameLayout)).addView(mOrbitView);
+
+        //set image round
+        mSoundSourceimageView = (ImageView) findViewById(R.id.sound_source);
+        mSoundSourceimageView.setBackground(new ShapeDrawable(new OvalShape()));
+        mSoundSourceimageView.setClipToOutline(true);
+        mSoundSourceimageView.setOnTouchListener(onTouchListener);
 
 
         mSoundArray = loadMonoSound(R.raw.raw_devil);
@@ -111,18 +119,10 @@ public class MainActivity extends AppCompatActivity {
                 loadHRTFdatabase(R.raw.right_hrtf_database),
                 MAX_ANGLE_INDEX_SIZE);
 
-        mSOHandleList[DEFAULT_SO_HANDLE] = mSoundEngine.makeNewSO(1000, 0, 0, mSoundArray);
+        mSoundEngine.setmSoundSourceImageView(0, mSoundSourceimageView);
+        mSoundEngine.setOrbitView(0, mOrbitView);
 
-
-
-        mOrbitView = new OrbitView(this);
-        ((FrameLayout) findViewById(R.id.MainActivityFrameLayout)).addView(mOrbitView);
-
-        //set image round
-        mSoundSourceimageView = (ImageView) findViewById(R.id.sound_source);
-        mSoundSourceimageView.setBackground(new ShapeDrawable(new OvalShape()));
-        mSoundSourceimageView.setClipToOutline(true);
-        mSoundSourceimageView.setOnTouchListener(onTouchListener);
+        mSOHandleList[DEFAULT_SO_HANDLE] = mSoundEngine.makeNewSO(1000, 200, 0, mSoundArray);
 
     }
 
@@ -267,36 +267,40 @@ public class MainActivity extends AppCompatActivity {
         public boolean onTouch(View v, MotionEvent event) {
             int width = ((ViewGroup) v.getParent()).getWidth() - v.getWidth();
             int height = ((ViewGroup) v.getParent()).getHeight() - v.getHeight();
+            float vX = v.getX();
+            float vY = v.getY();
+            int action = event.getAction();
 
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (action == MotionEvent.ACTION_DOWN) {
                 mOldXcor = event.getX();
                 mOldYcor = event.getY();
-            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            } else if (action == MotionEvent.ACTION_MOVE) {
                 v.setX(event.getRawX() - mOldXcor);
                 v.setY(event.getRawY() - mOldYcor);
-            } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                if (v.getX() > width && v.getY() > height) {
+
+            } else if (action == MotionEvent.ACTION_UP) {
+                if (vX > width && vY > height) {
                     v.setX(width);
                     v.setY(height);
-                } else if (v.getX() < 0 && v.getY() > height) {
+                } else if (vX < 0 && vY > height) {
                     v.setX(0);
                     v.setY(height);
-                } else if (v.getX() > width && v.getY() < 0) {
+                } else if (vX > width && vY < 0) {
                     v.setX(width);
                     v.setY(0);
-                } else if (v.getX() < 0 && v.getY() < 0) {
+                } else if (vX < 0 && vY < 0) {
                     v.setX(0);
                     v.setY(0);
-                } else if (v.getX() < 0 || v.getX() > width) {
-                    if (v.getX() < 0) {
+                } else if (vX < 0 || vX > width) {
+                    if (vX< 0) {
                         v.setX(0);
                         v.setY(event.getRawY() - mOldYcor - v.getHeight());
                     } else {
                         v.setX(width);
                         v.setY(event.getRawY() - mOldYcor - v.getHeight());
                     }
-                } else if (v.getY() < 0 || v.getY() > height) {
-                    if (v.getY() < 0) {
+                } else if (vY < 0 || vY > height) {
+                    if (vY < 0) {
                         v.setX(event.getRawX() - mOldXcor);
                         v.setY(0);
                     } else {
@@ -306,8 +310,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            mSOXcor = v.getX() - (mHeadXcor) + v.getWidth() / 2;
-            mSOYcor = -(v.getY() - (mHeadYcor)) - v.getHeight() / 2;
+            mSOXcor = vX - (mHeadXcor) + v.getWidth() / 2;
+            mSOYcor = -(vY - (mHeadYcor)) - v.getHeight() / 2;
             updateXcorTextView();
             updateYcorTextView();
 

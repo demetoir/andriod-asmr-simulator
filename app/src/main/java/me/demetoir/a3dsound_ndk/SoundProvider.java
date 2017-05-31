@@ -41,24 +41,29 @@ class SoundProvider extends Thread {
 //            Log.i(TAG, "providerProcess: getPushableSize = " + mSoundBuffer.getPushableSize());
             if (mSoundBuffer.isPushAble()) {
                 mSoundBuffer.pushBuffer(signalProcess(mSOHandle));
+//                float[] temp = sinalProcesssFFT(mSOHandle);
+//                Log.i(TAG, "providerProcess: temp len = "+temp.length);
+//                mSoundBuffer.pushBuffer(temp);
+
+
 //                bypassSignalProcess(mSOHandle, buf, buf.position());
 //                buf.asFloatBuffer().get(tempBuffer);
 //                mSoundBuffer.pushBuffer(tempBuffer);
                 continue;
             }
 
-            try {
-                sleep(0,1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-//            synchronized (this) {
-//                try {
-//                    this.wait();
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
+//            try {
+//                sleep(0,1000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
 //            }
+            synchronized (this) {
+                try {
+                    this.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -79,4 +84,6 @@ class SoundProvider extends Thread {
     public native float[] signalProcess(int SOHandle_j);
 
     public native void bypassSignalProcess(int SOHandle_j, ByteBuffer buf_j, int buf_start_index_j);
+
+    public native float[] sinalProcesssFFT(int SOHandle_j);
 }

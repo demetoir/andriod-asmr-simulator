@@ -2,6 +2,7 @@ package me.demetoir.a3dsound_ndk;
 
 import android.media.AudioTrack;
 import android.util.Log;
+import android.widget.ImageView;
 
 
 class SoundEngine {
@@ -19,6 +20,7 @@ class SoundEngine {
     private SoundConsumer mConsumer;
     private SoundBuffer mSoundBuffer;
     private AudioTrack mAudioTrack;
+    private soundOrbit mSoundOrbit;
 
     private int[] SPOHandleList;
     private boolean mIsPlaying;
@@ -34,6 +36,8 @@ class SoundEngine {
         mIsPlaying = false;
 
         mConsumer.addSoundProvider(mProvider);
+        mSoundOrbit = new soundOrbit(this, DEFAULT_SO_HANDLE);
+
     }
 
     void loadHRTF_database(float[][] rightHRTF_database,
@@ -52,6 +56,8 @@ class SoundEngine {
         mAudioTrack.play();
         mProvider.startProviding();
         mConsumer.startConsuming();
+//        mSoundOrbit.startRunning();
+
         try {
             mProvider.setPriority(7);
             mProvider.start();
@@ -68,6 +74,13 @@ class SoundEngine {
             Log.i(TAG, "start: mConsumer started");
         }
 
+//        try {
+//            mSoundOrbit.setPriority(7);
+//            mSoundOrbit.start();
+//        } catch (Exception ignored) {
+//        } finally {
+//            Log.i(TAG, "start: mSoundOrbit started");
+//        }
 
         Log.i(TAG, "start: thread started");
 
@@ -76,9 +89,13 @@ class SoundEngine {
     void stop() {
         mProvider.stopProviding();
         mConsumer.stopConsuming();
+//        mSoundOrbit.stopRunning();
         mIsPlaying = false;
     }
 
+    public boolean isPlaying() {
+        return mIsPlaying;
+    }
 
     int makeNewSO(int x_size_j, float x_j, float y_j, float[] sound_j) {
         int SOhandle = initSoundObject(x_size_j, x_j, y_j, sound_j);
@@ -105,4 +122,14 @@ class SoundEngine {
     public native void setSOY(int handle_j, float y_j);
 
     public native float getSOY(int handle_j);
+
+
+    void setOrbitView(int SOhandle, OrbitView orbitView) {
+        mSoundOrbit.setOrbitView(orbitView);
+    }
+
+    void setmSoundSourceImageView(int SOhandle, ImageView soundSourceImageView) {
+        mSoundOrbit.setmSoundSourceImageView(soundSourceImageView);
+    }
+
 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">삼3소리</string>
+    <string name="app_name">3디소리</string>
 
     <!--button text-->
     <string name="moveCounterClockWiseButtonText">ccw turn</string>
