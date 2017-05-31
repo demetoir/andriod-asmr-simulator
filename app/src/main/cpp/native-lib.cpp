@@ -18,6 +18,8 @@
 //https://code.tutsplus.com/ko/tutorials/how-to-get-started-with-androids-native-development-kit--cms-27605
 
 
+
+
 extern "C" {
 //define function here
 #define MAX_SPO_UNIT_SIZE 10
@@ -27,10 +29,10 @@ typedef struct {
     int x_size;
     float x[DELAY_BUFFER_SIZE];
     int head;
-    double angle;
-    double distance;
-    double xCor;
-    double yCor;
+    float angle;
+    float distance;
+    float xCor;
+    float yCor;
 
     float *inputSound;
     int inputSoundSize;
@@ -56,24 +58,21 @@ int getAngleIndex(double angle) {
 
 #define MAX_DISTANCE 400
 void updateDistance(int handle) {
-    double x = SOList[handle].xCor;
-    double y = SOList[handle].yCor;
-    SOList[handle].distance = sqrt(x * x + y * y);
-    if(SOList[handle].distance > MAX_DISTANCE){
+    SOList[handle].distance = (float) sqrt(SOList[handle].xCor * SOList[handle].xCor
+                                           + SOList[handle].yCor * SOList[handle].yCor);
+    if (SOList[handle].distance > MAX_DISTANCE) {
         SOList[handle].distance = MAX_DISTANCE;
     }
 }
 
 void updateAngle(int handle) {
-    double x = SOList[handle].xCor;
-    double y = SOList[handle].yCor;
-    SOList[handle].angle = (atan2(y, x) * 180) / M_PI;
+    SOList[handle].angle = (float) ((atan2(SOList[handle].yCor,
+                                           SOList[handle].xCor) * 180) / M_PI);
 }
 
 
-
 #define PUSHABLE_SIZE_PER_CHANNEL 64
-#define PUSHABLE_SIZE 128
+#define PUSHABLE_SIZE PUSHABLE_SIZE_PER_CHANNEL*2
 
 JNIEXPORT jfloatArray JNICALL
 Java_me_demetoir_a3dsound_1ndk_SoundProvider_signalProcess(
@@ -84,31 +83,69 @@ Java_me_demetoir_a3dsound_1ndk_SoundProvider_signalProcess(
 
 //    LOGI("JNI log angle : %lf,  angle index: %d ",object.angle, getAngleIndex(object.angle));
 
+    float distance_weight = (MAX_DISTANCE - object.distance) / MAX_DISTANCE;
+    int angleIdx = getAngleIndex(object.angle);
+    int j;
+    float leftOut = 0;
+    float rightOut = 0;
+    int index = object.head;
+
     for (int i = 0; i < PUSHABLE_SIZE_PER_CHANNEL; i++) {
+        leftOut = 0;
+        rightOut = 0;
+
         // delay
-        for (int j = hrtf_database.HRTF_SIZE - 1; j >= 0; j--) {
+        for (j = hrtf_database.HRTF_SIZE - 1; j >= 0; j--) {
             object.x[j] = object.x[j - 1];
         }
-        object.x[0] = object.inputSound[(i + object.head) % object.inputSoundSize];
+        object.x[0] = object.inputSound[index];
 
-        float leftOut = 0;
-        float rightOut = 0;
-        int angleIdx = getAngleIndex(object.angle);
+        index++;
+        if (index == object.inputSoundSize) index = 0;
+
         for (int j = 0; j < hrtf_database.HRTF_SIZE; j++) {
             leftOut += object.x[j] * hrtf_database.leftHRTF[angleIdx][j];
             rightOut += object.x[j] * hrtf_database.rightHRTF[angleIdx][j];
         }
-        object.mixedOutput[i * 2] = (float) (leftOut *
-                                             ((MAX_DISTANCE - object.distance) / MAX_DISTANCE));
-        object.mixedOutput[i * 2 + 1] = (float) (rightOut *
-                                                 ((MAX_DISTANCE - object.distance) / MAX_DISTANCE));
+
+        object.mixedOutput[i * 2] = leftOut * distance_weight;
+        object.mixedOutput[i * 2 + 1] = rightOut * distance_weight;
     }
+    object.head = (PUSHABLE_SIZE_PER_CHANNEL + object.head) % object.inputSoundSize;
 
     jfloatArray ret = env->NewFloatArray(PUSHABLE_SIZE);
     env->SetFloatArrayRegion(ret, 0, PUSHABLE_SIZE, object.mixedOutput);
-    object.head = (PUSHABLE_SIZE_PER_CHANNEL + object.head) % object.inputSoundSize;
 
     return ret;
+}
+
+
+JNIEXPORT void JNICALL
+Java_me_demetoir_a3dsound_1ndk_SoundProvider_bypassSignalProcess(
+        JNIEnv *env,
+        jobject instance,
+        jint SOHandle_j,
+        jobject buf_j,
+        jint buf_start_index_j) {
+
+    SoundObejct &object = SOList[SOHandle_j];
+
+    LOGI("JNI log start bypass ");
+    float *buf = (float *) ((char *) env->GetDirectBufferAddress(buf_j));
+    LOGI("JNI log bypass  buf = %d", buf);
+
+    int index = object.head;
+    LOGI("JNI log bypass  init");
+
+
+    for (int i = 0; i < PUSHABLE_SIZE_PER_CHANNEL; i++) {
+        index++;
+        if (index == object.inputSoundSize) index = 0;
+        buf[buf_start_index_j + i * 2] = object.inputSound[index];
+        buf[buf_start_index_j + i * 2 + 1] = object.inputSound[index];
+    }
+    object.head = (PUSHABLE_SIZE_PER_CHANNEL + object.head) % object.inputSoundSize;
+    LOGI("JNI log bypass  end");
 }
 
 
@@ -139,6 +176,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_loadHRTF(
 }
 
 
+
 //TODO 파일 분리 하는방법 알아두기
 int getNewSPOHANDLE() {
 
@@ -150,8 +188,8 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_initSoundObject(
         JNIEnv *env,
         jobject/* this */,
         jint x_size_j,
-        jdouble x_j,
-        jdouble y_j,
+        jfloat x_j,
+        jfloat y_j,
         jfloatArray sound_j) {
 
     SoundObejct &unit = SOList[getNewSPOHANDLE()];
@@ -189,12 +227,12 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOAngle
         (JNIEnv *env,
          jobject instance,
          jint handle_j,
-         jdouble angle_j) {
+         jfloat angle_j) {
 
     SOList[handle_j].angle = angle_j;
 }
 
-JNIEXPORT jdouble JNICALL
+JNIEXPORT jfloat JNICALL
 Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOAngle(
         JNIEnv *env,
         jobject instance,
@@ -208,18 +246,18 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSODistance(
         JNIEnv *env,
         jobject instance,
         jint handle_j,
-        jdouble distance_j) {
+        jfloat distance_j) {
 
     SOList[handle_j].distance = distance_j;
 }
 
-JNIEXPORT jdouble JNICALL
+JNIEXPORT jfloat JNICALL
 Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSODistance(
         JNIEnv *env,
         jobject instance,
         jint handle_j) {
 
-    return (jint) SOList[handle_j].distance;
+    return SOList[handle_j].distance;
 }
 
 
@@ -228,7 +266,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOX(
         JNIEnv *env,
         jobject instance,
         jint handle_j,
-        jdouble x_j) {
+        jfloat x_j) {
 
     SoundObejct &object = SOList[handle_j];
     object.xCor = x_j;
@@ -237,14 +275,13 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOX(
 
 }
 
-JNIEXPORT jdouble JNICALL
+JNIEXPORT jfloat JNICALL
 Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOX(
         JNIEnv *env,
         jobject instance,
         jint handle_j) {
 
-    SoundObejct &object = SOList[handle_j];
-    return object.xCor;
+    return SOList[handle_j].xCor;
 }
 
 JNIEXPORT void JNICALL
@@ -252,7 +289,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOY(
         JNIEnv *env,
         jobject instance,
         jint handle_j,
-        jdouble y_j) {
+        jfloat y_j) {
 
     SoundObejct &object = SOList[handle_j];
     object.yCor = y_j;
@@ -261,14 +298,13 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOY(
 
 }
 
-JNIEXPORT jdouble JNICALL
+JNIEXPORT jfloat JNICALL
 Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOY(
         JNIEnv *env,
         jobject instance,
         jint handle_j) {
 
-    SoundObejct &object = SOList[handle_j];
-    return object.yCor;
+    return SOList[handle_j].yCor;
 }
 
 
