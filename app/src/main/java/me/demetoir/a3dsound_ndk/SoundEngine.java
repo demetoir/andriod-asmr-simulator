@@ -2,7 +2,6 @@ package me.demetoir.a3dsound_ndk;
 
 import android.media.AudioTrack;
 import android.util.Log;
-import android.widget.ImageView;
 
 
 class SoundEngine {
@@ -37,6 +36,7 @@ class SoundEngine {
 
         mConsumer.addSoundProvider(mProvider);
         mSoundOrbit = new soundOrbit(this, DEFAULT_SO_HANDLE);
+        mSoundOrbit.start();
 
     }
 
@@ -103,6 +103,24 @@ class SoundEngine {
         return SOhandle;
     }
 
+
+    void setSoundObjectView(int SOhandle, SoundObjectView soundObjectView) {
+        mSoundOrbit.setOrbitView(soundObjectView);
+    }
+
+
+    void setSOOrbitView(int SOhandle, SoundObjectView view) {
+        mSoundOrbit.setOrbitView(view);
+    }
+
+    public void startSOOrbit(int SOHandle){
+        mSoundOrbit.startRunning();
+    }
+    public void stopSOOrbit(int SOhandle){
+        mSoundOrbit.stopRunning();
+    }
+
+
     private native void loadHRTF(float[] HRTF_database_j, int angleIndex_j, int channel);
 
     private native int initSoundObject(int x_size_j, float x_j, float y_j, float[] sound_j);
@@ -123,13 +141,5 @@ class SoundEngine {
 
     public native float getSOY(int handle_j);
 
-
-    void setOrbitView(int SOhandle, OrbitView orbitView) {
-        mSoundOrbit.setOrbitView(orbitView);
-    }
-
-    void setmSoundSourceImageView(int SOhandle, ImageView soundSourceImageView) {
-        mSoundOrbit.setmSoundSourceImageView(soundSourceImageView);
-    }
 
 }

@@ -1,23 +1,17 @@
 package me.demetoir.a3dsound_ndk;
 
 import android.util.Log;
-import android.widget.ImageView;
-
-import static android.content.ContentValues.TAG;
-
-/**
- * Created by Yujun-desktop on 2017-05-31.
- */
 
 class soundOrbit extends Thread {
+    private final static String TAG = "soundOrbit ";
 
-    private static final int UPDATE_TIME_INTERVAL = 10;
-    private final static int THREAD_WAKE_UP_TIME = 100;
-    private final static double dx_angle = 3;
+    private static final int FRAME_RATE = 25;
+    private static final int UPDATE_TIME_INTERVAL = 100;
+    private final static int THREAD_WAKE_UP_TIME = 1000 / FRAME_RATE;
+    private final static double dx_angle = 1;
 
     private int mSOHandle;
-    private ImageView mSoundSourceImageView;
-    private OrbitView mOrbitView;
+    private SoundObjectView mSoundObjectView;
     private SoundEngine mSoundEngine;
     private boolean mIsRunning;
 
@@ -27,32 +21,22 @@ class soundOrbit extends Thread {
         mIsRunning = false;
     }
 
-    soundOrbit(SoundEngine soundEngine, int SOHandle,
-               ImageView soundSourceImageView, OrbitView orbitView) {
+    soundOrbit(SoundEngine soundEngine,
+               int SOHandle,
+               SoundObjectView soundObjectView) {
         mSoundEngine = soundEngine;
         mSOHandle = SOHandle;
-        mSoundSourceImageView = soundSourceImageView;
-        mOrbitView = orbitView;
+        mSoundObjectView = soundObjectView;
         mIsRunning = false;
     }
 
-    void setOrbitView(OrbitView orbitView) {
-        mOrbitView = orbitView;
-    }
-
-    void setmSoundSourceImageView(ImageView soundSourceImageView) {
-        mSoundSourceImageView = soundSourceImageView;
+    void setOrbitView(SoundObjectView soundObjectView) {
+        mSoundObjectView = soundObjectView;
     }
 
 
     @Override
     public void run() {
-        super.run();
-
-
-    }
-
-    private void task() {
         while (true) {
             if (!mIsRunning) {
                 try {
@@ -63,32 +47,41 @@ class soundOrbit extends Thread {
                 continue;
             }
 
-            if (!mOrbitView.getIsTouching())
+
+            Log.i(TAG, "run: doing");
+            if (!mSoundObjectView.getIsTouching()) {
                 update();
+                mSoundObjectView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSoundObjectView.update();
+                    }
+                });
+
+                try {
+                    sleep(UPDATE_TIME_INTERVAL);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
+
 
     public void update() {
         double distance = mSoundEngine.getSODistance(mSOHandle);
         double oldAngle = mSoundEngine.getSOAngle(mSOHandle);
-
+        Log.i(TAG, "update: old angle " + oldAngle);
         double angle;
-        if (oldAngle < 0) {
-            angle = (180 - oldAngle) + 180;
-        } else {
-            angle = oldAngle;
-        }
 
-        double x = distance * Math.cos(angle);
-        double y = distance * Math.sin(angle);
+        angle = oldAngle + dx_angle;
+        Log.i(TAG, "update: angle " + dx_angle);
+        double x = distance * Math.cos(Math.toRadians(angle));
+        double y = distance * Math.sin(Math.toRadians(angle));
         mSoundEngine.setSOX(mSOHandle, (float) x);
         mSoundEngine.setSOY(mSOHandle, (float) y);
 
-        Log.i(TAG, "update: set x,y");
-
-        mOrbitView.invalidate();
-        mSoundSourceImageView.invalidate();
-        Log.i(TAG, "update: invalidate");
+        Log.i(TAG, "update: set " + x + "  " + y);
 
     }
 

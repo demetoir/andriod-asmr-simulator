@@ -7,105 +7,40 @@
     tools:context="me.demetoir.a3dsound_ndk.MainActivity"
     android:id="@+id/MainActivityFrameLayout">
 
-    <LinearLayout
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floatingActionButton3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:fabSize="mini"
+        app:srcCompat="@android:drawable/ic_menu_preferences" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floatingActionButton2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:fabSize="mini"
+        app:srcCompat="@android:drawable/ic_media_play" />
+
+
+    <RelativeLayout
+        android:id="@+id/SimulatorMonitorLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:weightSum="22">
+        android:layout_height="wrap_content">
 
-        <RelativeLayout
-            android:id="@+id/SimulatorMonitorLayout"
-            android:layout_width="match_parent"
+        <ImageView
+            android:id="@+id/head"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="20">
+            android:src="@drawable/man_head" />
 
-            <ImageView
-                android:id="@+id/head"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/man_head" />
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/orbit"/>
-
-            <ImageView
-                android:id="@+id/sound_source"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/flat_cycles_32x32"
-                />
-
-        </RelativeLayout>
-
-        <LinearLayout
+        <ImageView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:weightSum="4">
+            android:layout_height="match_parent"
+            android:id="@+id/orbit"/>
 
-            <TextView
-                android:id="@+id/angleText"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="angle" />
+    </RelativeLayout>
 
-            <TextView
-                android:id="@+id/distanceTextView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="distance" />
-
-            <TextView
-                android:id="@+id/XcorTextView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="X" />
-
-            <TextView
-                android:id="@+id/YcorTextView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="Y" />
-
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:weightSum="2">
-
-            <Button
-                android:id="@+id/playButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/playButtonText" />
-
-            <Button
-                android:id="@+id/stopButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/stopButtonText" />
-
-        </LinearLayout>
-
-    </LinearLayout>
 
 </FrameLayout>
