@@ -15,6 +15,11 @@ class SoundEngine {
     private final static int MAX_SPOHANDLE_SIZE = 10;
     private final static int DEFAULT_SO_HANDLE = 0;
 
+    public final static int MODE_NONE = 0;
+    public final static int MODE_CIRCLE = 1;
+    public final static int MODE_LINE = 2;
+    public final static int MODE_RANDOM = 3;
+
     private SoundProvider mProvider;
     private SoundConsumer mConsumer;
     private SoundBuffer mSoundBuffer;
@@ -37,7 +42,6 @@ class SoundEngine {
         mConsumer.addSoundProvider(mProvider);
         mSoundOrbit = new soundOrbit(this, DEFAULT_SO_HANDLE);
         mSoundOrbit.start();
-
     }
 
     void loadHRTF_database(float[][] rightHRTF_database,
@@ -97,11 +101,17 @@ class SoundEngine {
         return mIsPlaying;
     }
 
-    int makeNewSO(int x_size_j, float x_j, float y_j, float[] sound_j) {
-        int SOhandle = initSoundObject(x_size_j, x_j, y_j, sound_j);
-        SPOHandleList[DEFAULT_SO_HANDLE] = SOhandle;
-        return SOhandle;
+    int makeNewSO(Point2D SOPoint, float[] soundArray) {
+        int SOHandle;
+        int x_size_j = 1000;
+        SOHandle = initSoundObject(x_size_j,
+                SOPoint.x,
+                SOPoint.y,
+                soundArray);
+        SPOHandleList[DEFAULT_SO_HANDLE] = SOHandle;
+        return SOHandle;
     }
+
 
 
     void setSoundObjectView(int SOhandle, SoundObjectView soundObjectView) {
@@ -113,17 +123,21 @@ class SoundEngine {
         mSoundOrbit.setOrbitView(view);
     }
 
-    public void startSOOrbit(int SOHandle){
+    public void startSOOrbit(int SOHandle) {
         mSoundOrbit.startRunning();
     }
-    public void stopSOOrbit(int SOhandle){
+
+    public void stopSOOrbit(int SOhandle) {
         mSoundOrbit.stopRunning();
     }
+
 
 
     private native void loadHRTF(float[] HRTF_database_j, int angleIndex_j, int channel);
 
     private native int initSoundObject(int x_size_j, float x_j, float y_j, float[] sound_j);
+
+
 
     public native void setSOAngle(int handle_j, float angle_j);
 
@@ -133,13 +147,30 @@ class SoundEngine {
 
     public native float getSODistance(int handle_j);
 
-    public native void setSOX(int handle_j, float x_j);
+    public native void getSOPoint(int SOHandle_j, Point2D p_j);
 
-    public native float getSOX(int handle_j);
+    public native void setSOPoint(int SOHandle_j, Point2D p_j);
 
-    public native void setSOY(int handle_j, float y_j);
+    public native void getSOCenterPoint(int SOHandle_j, Point2D p_j);
 
-    public native float getSOY(int handle_j);
+    public native void setSOCenterPoint(int SOHandle_j, Point2D p_j);
+
+    public native void getSOStartPoint(int SOHandle_j, Point2D p_j);
+
+    public native void setSOStartPoint(int SOHandle_j, Point2D p_j);
+
+    public native void getSOEndPoint(int SOHandle_j, Point2D p_j);
+
+    public native void setSOEndPoint(int SOHandle_j, Point2D p_j);
+
+    public native float getSORadius(int SOHandle_j);
+
+    public native void setSORadius(int SOHandle_j, float radius_j);
+
+    public native float getSOCenterAngle(int SOHandle_j);
 
 
+    public native int getOrbitMode(int SOHandle_j);
+
+    public native void setOrbitMode(int SOHandle_j, int mode_j);
 }

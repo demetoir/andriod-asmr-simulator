@@ -29,16 +29,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+
+        <ImageView
+            android:id="@+id/orbit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
         <ImageView
             android:id="@+id/head"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/man_head" />
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/orbit"/>
 
     </RelativeLayout>
 
