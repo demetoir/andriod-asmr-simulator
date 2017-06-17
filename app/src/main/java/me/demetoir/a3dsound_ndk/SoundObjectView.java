@@ -114,21 +114,28 @@ class SoundObjectView extends View {
         this.getMeasuredHeight();
         this.getMeasuredWidth();
 
-        if (mOrbitMode == MODE_CIRCLE) {
-            drawCircleOrbit(canvas);
-        } else if (mOrbitMode == MODE_LINE) {
-            drawLineOrbit(canvas);
-        } else if (mOrbitMode == MODE_RANDOM) {
-            drawRandomOrbit(canvas);
+        // draw orbit
+        switch (mOrbitMode){
+            case MODE_CIRCLE:
+                drawCircleOrbit(canvas);
+                break;
+            case MODE_LINE:
+                drawLineOrbit(canvas);
+                break;
+            case MODE_RANDOM:
+                drawRandomOrbit(canvas);
+                break;
+            case MODE_NONE:
+                break;
+            default:
+                break;
         }
-
 
         // TODO set image round
         // draw sound object
 
 //        rectLog(mSoundObjectRect);
         canvas.drawBitmap(mSoundObjectBitmap, null, mSoundObjectRect, null);
-
     }
 
     private void drawRandomOrbit(Canvas canvas) {
@@ -210,7 +217,6 @@ class SoundObjectView extends View {
         } else {
             return TOUCHING_NONE;
         }
-
     }
 
 

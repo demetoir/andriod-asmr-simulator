@@ -1,6 +1,7 @@
 package me.demetoir.a3dsound_ndk;
 
 import android.util.Log;
+import android.widget.SeekBar;
 
 import java.util.Random;
 
@@ -18,17 +19,20 @@ class soundOrbit extends Thread {
     private final static double DX_ANGLE = 1.15;
     private final static double EPSILON = 1e-4;
     private final static double DEFAULT_SPEED = 3.0;
-    private final static double MAX_SPEED = DEFAULT_SPEED * 2;
-    private final static double MIN_SPEED = DEFAULT_SPEED / 3;
+    final static double MAX_SPEED = DEFAULT_SPEED * 3;
+    final static double MIN_SPEED = 0;
 
     private final static int RANDOM_INTERVAL_MAX_CNT = FRAME_RATE * 3;
     private final static int RANDOM_MIN = -300;
     private final static int RANDOM_MAX = 300;
 
-    private final static int SCREEN_LEFT = -350;
-    private final static int SCREEN_RIGHT = 350;
+    private final static int SCREEN_LEFT = -360;
+    private final static int SCREEN_RIGHT = 360;
     private final static int SCREEN_TOP = -500;
     private final static int SCREEN_BOTTOM = 500;
+
+    final static int DIRECTION_FORWARD = 1;
+    final static int DIRECTION_REVERSE = -1;
 
     private int mSOHandle;
     private SoundObjectView mSoundObjectView;
@@ -41,6 +45,16 @@ class soundOrbit extends Thread {
     private Random random;
     private boolean mIsReachLineEnd;
 
+    private boolean mIsRandomizeSpeed;
+
+    void setRandomizeSpeed(boolean flag){
+        mIsRandomizeSpeed = flag;
+    }
+
+    boolean isRandomizeSpeed(){
+        return mIsRandomizeSpeed;
+    }
+
     soundOrbit(SoundEngine soundEngine, int SOHandle) {
         mSoundEngine = soundEngine;
         mSOHandle = SOHandle;
@@ -51,7 +65,9 @@ class soundOrbit extends Thread {
         mInternalOrbitMode = MODE_NONE;
         random = new Random();
         mIsReachLineEnd = false;
+        mIsRandomizeSpeed = false;
     }
+
 
     void setOrbitView(SoundObjectView soundObjectView) {
         mSoundObjectView = soundObjectView;
@@ -78,6 +94,8 @@ class soundOrbit extends Thread {
                 @Override
                 public void run() {
                     mSoundObjectView.update();
+
+
                 }
             });
 
@@ -91,12 +109,21 @@ class soundOrbit extends Thread {
 
 
     private void update() {
-        if (mSoundEngine.getOrbitMode(mSOHandle) == MODE_CIRCLE) {
-            updateCircleOrbit();
-        } else if (mSoundEngine.getOrbitMode(mSOHandle) == MODE_LINE) {
-            updateLineOrbit();
-        } else if (mSoundEngine.getOrbitMode(mSOHandle) == MODE_RANDOM) {
-            updateRandomOrbit();
+        int orbitMode = mSoundEngine.getOrbitMode(mSOHandle);
+        switch (orbitMode) {
+            case MODE_CIRCLE:
+                updateCircleOrbit();
+                break;
+            case MODE_LINE:
+                updateLineOrbit();
+                break;
+            case MODE_RANDOM:
+                updateRandomOrbit();
+                break;
+            case MODE_NONE:
+                break;
+            default:
+                break;
         }
     }
 
@@ -125,6 +152,14 @@ class soundOrbit extends Thread {
     }
 
     private void updateLineOrbit() {
+        if (mIsReachLineEnd) {
+            mIsReachLineEnd = false;
+            Point2D newP = new Point2D();
+            mSoundEngine.getSOStartPoint(mSOHandle, newP);
+            mSoundEngine.setSOPoint(mSOHandle, newP);
+            return;
+        }
+
         Point2D startP = new Point2D();
         mSoundEngine.getSOStartPoint(mSOHandle, startP);
 
@@ -141,10 +176,9 @@ class soundOrbit extends Thread {
         Point2D newP = new Point2D(oldP.x + (float) dx, oldP.y + (float) dy);
 
         //if over end point
-        mIsReachLineEnd = false;
+
         if (isOverEndPoint(newP, endP, startP)) {
             mIsReachLineEnd = true;
-            newP = startP;
         }
 
         mSoundEngine.setSOPoint(mSOHandle, newP);
@@ -159,25 +193,18 @@ class soundOrbit extends Thread {
             updateLineOrbit();
         }
 
+        // TODO 이부분 자연스럽게 처리되도록 수정
         if (mRandomIntervalCnt <= 0
                 || isSOOutOfBoarder()
                 || isReachLineEnd()) {
-            Log.i(TAG, "updateRandomOrbit: isSOOutOfBoarder() " + isSOOutOfBoarder());
-            Log.i(TAG, "updateRandomOrbit: mIsReachLineEnd() " + isReachLineEnd());
             mIsReachLineEnd = false;
-
             randomizeInternalOrbitMode();
-
-            //debug
-//            mInternalOrbitMode = MODE_CIRCLE;
-
             mRandomIntervalCnt = RANDOM_INTERVAL_MAX_CNT;
-            Log.i(TAG, "updateRandomOrbit: mode " + mInternalOrbitMode);
-            Log.i(TAG, "updateRandomOrbit: cnt " + mRandomIntervalCnt);
 
             if (mInternalOrbitMode == MODE_LINE) {
-                // set random speed
-                randomizeSpeed();
+                if(mIsRandomizeSpeed) {
+                    randomizeSpeed();
+                }
 
                 // set line start point to current point
                 Point2D curP = new Point2D();
@@ -191,10 +218,11 @@ class soundOrbit extends Thread {
                 mSoundEngine.setSOEndPoint(mSOHandle, randEndP);
 
 //                printLogPoint2D(randEndP);
-
             } else if (mInternalOrbitMode == MODE_CIRCLE) {
                 // set random speed and direction
-                randomizeSpeed();
+                if(isRandomizeSpeed()) {
+                    randomizeSpeed();
+                }
                 randomizeDirection();
 
                 // set random circle center point
@@ -203,7 +231,6 @@ class soundOrbit extends Thread {
                 mSoundEngine.setSOCenterPoint(mSOHandle, randCenterP);
 
 //                printLogPoint2D(randCenterP);
-
             }
         }
     }
@@ -212,7 +239,7 @@ class soundOrbit extends Thread {
         Point2D p = new Point2D();
         mSoundEngine.getSOPoint(mSOHandle, p);
 
-        printLogPoint2D(p);
+//        printLogPoint2D(p);
 
         return !(p.x >= SCREEN_LEFT && p.x <= SCREEN_RIGHT
                 && p.y >= SCREEN_TOP && p.y <= SCREEN_BOTTOM);
@@ -223,7 +250,15 @@ class soundOrbit extends Thread {
     }
 
     private void randomizeSpeed() {
+        //randomize speed
         mSpeed = (random.nextFloat() * MAX_SPEED) + MIN_SPEED;
+
+        //update seekBar progress
+        MainActivity activity = (MainActivity) mSoundEngine.getActivity();
+        SeekBar seekBar = (SeekBar) activity.findViewById(R.id.seekBarSoundObjectSpeed);
+        int max = seekBar.getMax();
+        int progress = (int) ((mSpeed - MIN_SPEED) * max / MAX_SPEED);
+        seekBar.setProgress(progress);
     }
 
     private void randomizeInternalOrbitMode() {
@@ -261,6 +296,23 @@ class soundOrbit extends Thread {
 
     private void printLogPoint2D(Point2D p) {
         Log.i(TAG, "printLogPoint2D: x " + p.x + " y " + p.y);
+    }
+
+
+    public int getDirection() {
+        return mDirection;
+    }
+
+    public void setDirection(int direction) {
+        mDirection = direction;
+    }
+
+    public void setSpeed(float speed) {
+        mSpeed = speed;
+    }
+
+    public float getSpeed() {
+        return (float) mSpeed;
     }
 
 }

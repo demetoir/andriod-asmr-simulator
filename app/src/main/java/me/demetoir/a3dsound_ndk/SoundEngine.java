@@ -1,5 +1,6 @@
 package me.demetoir.a3dsound_ndk;
 
+import android.app.Activity;
 import android.media.AudioTrack;
 import android.util.Log;
 
@@ -26,6 +27,8 @@ class SoundEngine {
     private AudioTrack mAudioTrack;
     private soundOrbit mSoundOrbit;
 
+    private MainActivity mainActivity;
+
     private int[] SPOHandleList;
     private boolean mIsPlaying;
 
@@ -42,6 +45,14 @@ class SoundEngine {
         mConsumer.addSoundProvider(mProvider);
         mSoundOrbit = new soundOrbit(this, DEFAULT_SO_HANDLE);
         mSoundOrbit.start();
+    }
+
+    void setMainActivity(Activity activity){
+        mainActivity = (MainActivity) activity;
+    }
+
+    Activity getActivity(){
+        return mainActivity;
     }
 
     void loadHRTF_database(float[][] rightHRTF_database,

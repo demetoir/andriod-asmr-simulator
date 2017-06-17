@@ -626,7 +626,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOCenterAngle(
         jobject instance,
         jint SOHandle_j) {
 
-    // TODO
     return SOList[SOHandle_j].centerAngle;
 }
 

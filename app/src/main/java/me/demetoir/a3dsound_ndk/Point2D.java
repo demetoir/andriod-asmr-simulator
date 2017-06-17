@@ -11,6 +11,11 @@ class Point2D {
         this.y = 0;
     }
 
+    Point2D(Point2D p) {
+        this.x = p.x;
+        this.y = p.y;
+    }
+
 
     Point2D(float x, float y) {
         this.x = x;
@@ -77,7 +82,7 @@ class Point2D {
 
     void randomize(int left, int top, int right, int bottom) {
         Random random = new Random();
-        this.x = random.nextInt(right - left) - (right - left)/2;
-        this.y = random.nextInt(bottom - top) - (bottom - top)/2;
+        this.x = random.nextInt(right - left) - (right - left) / 2;
+        this.y = random.nextInt(bottom - top) - (bottom - top) / 2;
     }
 }
