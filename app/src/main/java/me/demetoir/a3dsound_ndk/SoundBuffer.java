@@ -8,7 +8,7 @@ class SoundBuffer {
 
     private final static int BUFFER_SIZE = 1024*8 ;
     private final static int CHANNEL_SIZE = 2;
-    private final static int PUSHABLE_SIZE_PER_CHANNEL = 128;
+    private final static int PUSHABLE_SIZE_PER_CHANNEL = 32;
     public final static int PUSHABLE_SIZE = PUSHABLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
     private final static int POPABBLE_SIZE_PER_CHANNEL = 128;
     public final static int POPABLE_SIZE = POPABBLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;

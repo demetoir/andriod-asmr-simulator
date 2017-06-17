@@ -21,6 +21,7 @@
 
 
 
+
 extern "C" {
 
 //const double PI = 3.141592653589793238460;
@@ -158,7 +159,7 @@ void updateRadius(int handle) {
     SOList[handle].radius = (float) sqrt(dx * dx + dy * dy);
 }
 
-#define PUSHABLE_SIZE_PER_CHANNEL 128
+#define PUSHABLE_SIZE_PER_CHANNEL 32
 #define PUSHABLE_SIZE PUSHABLE_SIZE_PER_CHANNEL*2
 
 JNIEXPORT jfloatArray JNICALL
@@ -407,9 +408,29 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_initSoundObject(
         unit.inputSound[i] = inputSound[i];
     }
 
-
 }
 
+JNIEXPORT jint JNICALL
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_loadSound(
+        JNIEnv *env,
+        jobject instance,
+        jint handle_j,
+        jfloatArray sound_j_) {
+    jfloat *sound_j = env->GetFloatArrayElements(sound_j_, NULL);
+
+    SoundObject &unit = SOList[handle_j];
+
+    unit.inputSoundSize = env->GetArrayLength(sound_j_);
+
+    if (unit.inputSound != NULL)
+        free(unit.inputSound);
+    unit.inputSound = (float *) malloc(sizeof(float) * unit.inputSoundSize);
+    for (int i = 0; i < unit.inputSoundSize; i++) {
+        unit.inputSound[i] = sound_j[i];
+    }
+
+    env->ReleaseFloatArrayElements(sound_j_, sound_j, 0);
+}
 
 
 

@@ -137,6 +137,7 @@ class SoundEngine {
 
     private native int initSoundObject(int x_size_j, float x_j, float y_j, float[] sound_j);
 
+    public native int loadSound(int handle_j, float[] sound_j);
 
 
     public native void setSOAngle(int handle_j, float angle_j);
@@ -173,4 +174,8 @@ class SoundEngine {
     public native int getOrbitMode(int SOHandle_j);
 
     public native void setOrbitMode(int SOHandle_j, int mode_j);
+
+    public soundOrbit getSoundOrbit(int SOHandle){
+        return mSoundOrbit;
+    }
 }

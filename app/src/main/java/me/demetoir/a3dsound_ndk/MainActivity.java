@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
         // init sound object view
         mSOView.setSoundEngine(mSoundEngine);
-        mSOView.setOnTouchListener(onTouchListener);
+        mSOView.setOnTouchListener(onTouchListenerSOView);
 
         mSoundEngine.setSOOrbitView(DEFAULT_SO_HANDLE, mSOView);
 
@@ -274,34 +274,46 @@ public class MainActivity extends AppCompatActivity {
     private Button.OnTouchListener mMenuBtnOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                int mode = mSoundEngine.getOrbitMode(DEFAULT_SO_HANDLE);
-                if (mode == SoundEngine.MODE_CIRCLE) {
-                    mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_LINE);
-                    Point2D p = new Point2D();
-                    mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, p);
-                    mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, p);
-                    mSOView.update();
-                } else {
-                    mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_CIRCLE);
-                    mSOView.update();
-                }
-                Log.i(TAG, "onClick: menu");
-
-            }
-            return false;
+            return MenuBtnOnTouchListener_(event);
         }
     };
 
+    private boolean MenuBtnOnTouchListener_(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            int mode = mSoundEngine.getOrbitMode(DEFAULT_SO_HANDLE);
+            //set circle to  line
+            if (mode == SoundEngine.MODE_CIRCLE) {
+                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_LINE);
 
-    private SoundObjectView.OnTouchListener onTouchListener = new View.OnTouchListener() {
+                Point2D p = new Point2D();
+                mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, p);
+                mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, p);
+                mSOView.update();
+            }
+            // line to random
+            else if (mode == SoundEngine.MODE_LINE) {
+                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_RANDOM);
+                mSOView.update();
+            }
+            // random to circle
+            else {
+                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_CIRCLE);
+                mSOView.update();
+            }
+            Log.i(TAG, "onClick: menu");
+
+        }
+        return false;
+    }
+
+    private SoundObjectView.OnTouchListener onTouchListenerSOView = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-            return onTouchListener_(v, event);
+            return onTouchListenerSOView_(v, event);
         }
     };
 
-    private boolean onTouchListener_(View v, MotionEvent event) {
+    private boolean onTouchListenerSOView_(View v, MotionEvent event) {
         SoundObjectView SOView = (SoundObjectView) v;
         int orbitMode = mSoundEngine.getOrbitMode(DEFAULT_SO_HANDLE);
         float eX = event.getX();
@@ -316,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
         if (action == MotionEvent.ACTION_DOWN) {
             int object = SOView.pointingObject(newP);
             SOView.setTouchingObject(object);
-            Log.i(TAG, "onTouchListener_: touch " + object);
+            Log.i(TAG, "onTouchListenerSOView_: touch " + object);
             SOView.setTouching(true);
         } else if (action == MotionEvent.ACTION_MOVE && SOView.IsTouching()) {
             int object = SOView.getTouchingObject();
@@ -344,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (object == SoundObjectView.TOUCHING_CENTER_POINT
                     && orbitMode == SoundEngine.MODE_CIRCLE) {
                 mSoundEngine.setSOCenterPoint(DEFAULT_SO_HANDLE, newP);
-                Log.i(TAG, "onTouchListener_: circle point move");
+                Log.i(TAG, "onTouchListenerSOView_: circle point move");
                 Log.i(TAG, "onTouch: move");
 
 
@@ -394,7 +406,6 @@ public class MainActivity extends AppCompatActivity {
                 Point2D newSOP = newStartP.sub(dx, dy);
                 mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, newSOP);
 
-
                 mSoundEngine.setSOStartPoint(DEFAULT_SO_HANDLE, newStartP);
                 Log.i(TAG, "onTouch: move");
             }
@@ -411,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-//    private ImageView.OnTouchListener onTouchListener = new View.OnTouchListener() {
+//    private ImageView.OnTouchListener onTouchListenerSOView = new View.OnTouchListener() {
 //        @Override
 //        public boolean onTouch(View v, MotionEvent event) {
 //            int width = ((ViewGroup) v.getParent()).getWidth() - v.getWidth();

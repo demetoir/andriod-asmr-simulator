@@ -1,5 +1,7 @@
 package me.demetoir.a3dsound_ndk;
 
+import java.util.Random;
+
 class Point2D {
     float x;
     float y;
@@ -70,5 +72,12 @@ class Point2D {
 
     double angle(Point2D p) {
         return Math.atan2(this.y - p.y, this.x - p.x);
+    }
+
+
+    void randomize(int left, int top, int right, int bottom) {
+        Random random = new Random();
+        this.x = random.nextInt(right - left) - (right - left)/2;
+        this.y = random.nextInt(bottom - top) - (bottom - top)/2;
     }
 }

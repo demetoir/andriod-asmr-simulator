@@ -21,6 +21,7 @@ class SoundObjectView extends View {
     public final static int MODE_NONE = 0;
     public final static int MODE_CIRCLE = 1;
     public final static int MODE_LINE = 2;
+    public final static int MODE_RANDOM = 3;
 
     public final static int TOUCHING_NONE = 0;
     public final static int TOUCHING_SOUND_OBJECT = 1;
@@ -114,42 +115,13 @@ class SoundObjectView extends View {
         this.getMeasuredWidth();
 
         if (mOrbitMode == MODE_CIRCLE) {
-            mSoundEngine.getSOCenterPoint(DEFAULT_SO_HANDEL, mCenterP);
-            Point2D centerP = pToScreenP(mCenterP);
-            mRadius = mSoundEngine.getSORadius(DEFAULT_SO_HANDEL);
-            Log.i(TAG, "onDraw: center x "+ centerP.x+ " y"+ centerP.y);
-            // orbit
-            canvas.drawCircle(centerP.x, centerP.y, mRadius, mOrbitPaint);
-
-            // center point
-            canvas.drawCircle(centerP.x,
-                    centerP.y,
-                    CENTER_CIRCLE_RADIUS,
-                    mCenterPointPaint);
+            drawCircleOrbit(canvas);
         } else if (mOrbitMode == MODE_LINE) {
-            mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDEL, mLineStartP);
-            mSoundEngine.getSOEndPoint(DEFAULT_SO_HANDEL, mLineEndP);
-            Point2D startP = pToScreenP(mLineStartP);
-            Point2D endP = pToScreenP(mLineEndP);
-
-            // orbit line
-            canvas.drawLine(startP.x,
-                    startP.y,
-                    endP.x,
-                    endP.y,
-                    mOrbitPaint);
-
-            // start, end point
-            canvas.drawCircle(startP.x,
-                    startP.y,
-                    CENTER_CIRCLE_RADIUS,
-                    mLineStartPaint);
-
-            canvas.drawCircle(endP.x,
-                    endP.y,
-                    CENTER_CIRCLE_RADIUS,
-                    mLineEndPaint);
+            drawLineOrbit(canvas);
+        } else if (mOrbitMode == MODE_RANDOM) {
+            drawRandomOrbit(canvas);
         }
+
 
         // TODO set image round
         // draw sound object
@@ -157,6 +129,56 @@ class SoundObjectView extends View {
 //        rectLog(mSoundObjectRect);
         canvas.drawBitmap(mSoundObjectBitmap, null, mSoundObjectRect, null);
 
+    }
+
+    private void drawRandomOrbit(Canvas canvas) {
+        int internalMode = mSoundEngine.getSoundOrbit(mSOHandle).getInternalOrbitMode();
+        if (internalMode == MODE_CIRCLE){
+            drawCircleOrbit(canvas);
+        }
+        else if(internalMode == MODE_LINE){
+            drawLineOrbit(canvas);
+        }
+    }
+
+    private void drawLineOrbit(Canvas canvas) {
+        mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDEL, mLineStartP);
+        mSoundEngine.getSOEndPoint(DEFAULT_SO_HANDEL, mLineEndP);
+        Point2D startP = pToScreenP(mLineStartP);
+        Point2D endP = pToScreenP(mLineEndP);
+
+        // orbit line
+        canvas.drawLine(startP.x,
+                startP.y,
+                endP.x,
+                endP.y,
+                mOrbitPaint);
+
+        // start, end point
+        canvas.drawCircle(startP.x,
+                startP.y,
+                CENTER_CIRCLE_RADIUS,
+                mLineStartPaint);
+
+        canvas.drawCircle(endP.x,
+                endP.y,
+                CENTER_CIRCLE_RADIUS,
+                mLineEndPaint);
+    }
+
+    private void drawCircleOrbit(Canvas canvas) {
+        mSoundEngine.getSOCenterPoint(DEFAULT_SO_HANDEL, mCenterP);
+        Point2D centerP = pToScreenP(mCenterP);
+        mRadius = mSoundEngine.getSORadius(DEFAULT_SO_HANDEL);
+//        Log.i(TAG, "onDraw: center x " + centerP.x + " y" + centerP.y);
+        // orbit
+        canvas.drawCircle(centerP.x, centerP.y, mRadius, mOrbitPaint);
+
+        // center point
+        canvas.drawCircle(centerP.x,
+                centerP.y,
+                CENTER_CIRCLE_RADIUS,
+                mCenterPointPaint);
     }
 
 
@@ -175,7 +197,7 @@ class SoundObjectView extends View {
     }
 
     public int pointingObject(Point2D p) {
-        pointLog(p);
+//        pointLog(p);
 //        rectLog(mCenterPointTouchRect);
         if (isPointInSO(p)) {
             return TOUCHING_SOUND_OBJECT;
@@ -204,14 +226,14 @@ class SoundObjectView extends View {
         if (mOrbitMode == MODE_CIRCLE) {
             mSoundEngine.getSOCenterPoint(DEFAULT_SO_HANDEL, mCenterP);
 
-            pointLog(mCenterP);
+//            pointLog(mCenterP);
 
             setRectByPoint(mCenterPointTouchRect,
                     mCenterP,
                     (int) CIRCLE_TOUCH_RADIUS,
                     (int) CIRCLE_TOUCH_RADIUS);
 
-            rectLog(mCenterPointTouchRect);
+//            rectLog(mCenterPointTouchRect);
 
         } else if (mOrbitMode == MODE_LINE) {
             mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDEL, mLineStartP);
