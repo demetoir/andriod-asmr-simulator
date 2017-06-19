@@ -18,6 +18,7 @@ class SoundConsumer extends Thread {
     private AudioTrack mAudioTrack;
     private boolean mIsConsuming;
     private boolean mIsExitThread;
+    private boolean isRunning;
     private SoundProvider mSoundProvider;
 
     SoundConsumer(SoundBuffer soundBuffer, AudioTrack audioTrack) {
@@ -25,6 +26,7 @@ class SoundConsumer extends Thread {
         mAudioTrack = audioTrack;
         mIsConsuming = false;
         mIsExitThread = false;
+        isRunning = false;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -39,6 +41,7 @@ class SoundConsumer extends Thread {
         float[] outputSound;
         while (!mIsExitThread) {
             if (!mIsConsuming) {
+                isRunning =false;
                 try {
                     sleep(THREAD_WAKE_UP_TIME);
                 } catch (InterruptedException e) {
@@ -51,6 +54,7 @@ class SoundConsumer extends Thread {
                 continue;
             }
 
+            isRunning = true;
             outputSound = mSoundBuffer.popBuffer();
             mAudioTrack.write(
                     outputSound,
@@ -73,5 +77,12 @@ class SoundConsumer extends Thread {
 
     void stopConsuming() {
         mIsConsuming = false;
+        //wait for stop thread
+        while (isRunning) {
+        }
+    }
+
+    public boolean isRunning(){
+        return isRunning;
     }
 }

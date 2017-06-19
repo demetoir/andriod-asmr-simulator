@@ -36,7 +36,7 @@ public class SoundOrbit extends Thread {
     private int mSOHandle;
     private SoundObjectView mSoundObjectView;
     private SoundEngine mSoundEngine;
-    private boolean mIsRunning;
+    private boolean mIsUpdating;
     private boolean mIsThreadExit;
     private double mSpeed;
     private int mDirection;
@@ -45,11 +45,13 @@ public class SoundOrbit extends Thread {
     private Random mRandom;
     private boolean mIsReachLineEnd;
     private boolean mIsRandomizeSpeed;
+    private boolean isRunning;
 
     SoundOrbit(SoundEngine soundEngine, int SOHandle) {
         mSoundEngine = soundEngine;
         mSOHandle = SOHandle;
-        mIsRunning = false;
+        mIsUpdating = false;
+        isRunning = false;
         mSpeed = DEFAULT_SPEED;
         mDirection = DIRECTION_FORWARD;
         mRandomIntervalCnt = 0;
@@ -75,7 +77,8 @@ public class SoundOrbit extends Thread {
     @Override
     public void run() {
         while (!mIsThreadExit) {
-            if (!mIsRunning) {
+            if (!mIsUpdating) {
+                isRunning = false;
                 try {
                     sleep(THREAD_WAKE_UP_TIME);
                 } catch (InterruptedException e) {
@@ -84,6 +87,7 @@ public class SoundOrbit extends Thread {
                 continue;
             }
 
+            isRunning = true;
             update();
             mSoundObjectView.post(new Runnable() {
                 @Override
@@ -257,11 +261,13 @@ public class SoundOrbit extends Thread {
     }
 
     void startRunning() {
-        mIsRunning = true;
+        mIsUpdating = true;
     }
 
     void stopRunning() {
-        mIsRunning = false;
+        mIsUpdating = false;
+        while (isRunning){
+        }
     }
 
     private boolean isOverEndPoint(Point2D curP, Point2D endP, Point2D startP) {
@@ -291,4 +297,11 @@ public class SoundOrbit extends Thread {
     public float getSpeed() {
         return (float) mSpeed;
     }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
+
 }
+
+

@@ -1,8 +1,6 @@
 package me.demetoir.a3dsound_ndk.SoundEngine;
 
 
-
-
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
@@ -14,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-import me.demetoir.a3dsound_ndk.MainActivity;
 import me.demetoir.a3dsound_ndk.R;
 import me.demetoir.a3dsound_ndk.util.Util;
 
@@ -30,7 +27,7 @@ public class SoundBank {
     public final static int sound_latex_glove = R.raw.sound_latex_glove;
     public final static int SOUND_NOTE_BOOK_TYPING = R.raw.sound_note_book_typing;
     public final static int SOUND_SCISSORS = R.raw.sound_scissors;
-    public final static int SOUND_WATER_BOTTEL = R.raw.sound_water_bottle;
+    public final static int SOUND_WATER_BOTTLE = R.raw.sound_water_bottle;
     public final static int SOUND_WOOD_BLOCK = R.raw.sound_wood_block;
     public final static int SOUND_PAPER = R.raw.sound_paper;
 
@@ -39,13 +36,13 @@ public class SoundBank {
 
     public final static int DEFAULT_SOUND = SOUND_SCISSORS;
 
-    private MainActivity mMainActivity;
+    private Activity mMainActivity;
 
     public SoundBank(Activity activity) {
-        mMainActivity = (MainActivity) activity;
+        mMainActivity = activity;
     }
 
-    public float[] loadMonoSound(int monoSoundResId) {
+    public float[] getMonoSound(int monoSoundResId) {
         short[] monoSound;
         InputStream inputStream = mMainActivity.getResources().openRawResource(monoSoundResId);
         DataInputStream dataInputStream = null;
@@ -56,7 +53,7 @@ public class SoundBank {
                 shorts.add(dataInputStream.readShort());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             Log.e(TAG, "loadSound: " + e);
         } finally {
             monoSound = new short[shorts.size()];
@@ -77,6 +74,46 @@ public class SoundBank {
         return Util.shortToFloat(monoSound);
     }
 
+    public int[] getSoundResList() {
+        int[] list = new int[SOUND_BANK_SIZE];
+        list[0] = SOUND_BIRD;
+        list[1] = SOUND_GLASS_BOTTLE;
+        list[2] = SOUND_HAND;
+        list[3] = sound_latex_glove;
+        list[4] = SOUND_NOTE_BOOK_TYPING;
+        list[5] = SOUND_SCISSORS;
+        list[6] = SOUND_WATER_BOTTLE;
+        list[7] = SOUND_WOOD_BLOCK;
+        list[8] = SOUND_PAPER;
+        return list;
+    }
+
+    public int[] getSoundStrIdList() {
+        int[] list = new int[SOUND_BANK_SIZE];
+        list[0] = R.string.sound_bird;
+        list[1] = R.string.sound_glass_bottle;
+        list[2] = R.string.sound_hand;
+        list[3] = R.string.sound_latex_glove;
+        list[4] = R.string.sound_note_book_typing;
+        list[5] = R.string.sound_scissors;
+        list[6] = R.string.sound_water_bottle;
+        list[7] = R.string.sound_wood_block;
+        list[8] = R.string.sound_paper;
+        return list;
+    }
+
+    public String[] getSoundString() {
+        int[] idList = getSoundStrIdList();
+        String[] soundString = new String[idList.length];
+        for (int i = 0; i < idList.length; i++) {
+            soundString[i] = mMainActivity.getResources().getString(idList[i]);
+        }
+        return soundString;
+    }
+
+    public int getSoundResId(int index) {
+        return getSoundResList()[index];
+    }
 
     // TODO imp ?
     private void soundSourceCheck() {

@@ -14,17 +14,20 @@ class SoundProvider extends Thread {
     private int mSOHandle;
     private boolean mIsProviding;
     private boolean mIsExitThread;
+    private boolean isRunning;
 
     SoundProvider(SoundBuffer object, int SOHandle) {
         mSoundBuffer = object;
         mSOHandle = SOHandle;
         mIsProviding = false;
         mIsExitThread = false;
+        isRunning = false;
     }
 
     private void providerProcess() {
         while (!mIsExitThread) {
             if (!mIsProviding) {
+                isRunning = false;
                 try {
                     sleep(THREAD_WAKE_UP_TIME);
                 } catch (InterruptedException e) {
@@ -34,7 +37,9 @@ class SoundProvider extends Thread {
             }
 
             if (mSoundBuffer.isPushAble()) {
+                isRunning = true;
                 mSoundBuffer.pushBuffer(signalProcess(mSOHandle));
+//                Log.i(TAG, "providerProcess: ffff");
                 continue;
             }
 
@@ -60,10 +65,15 @@ class SoundProvider extends Thread {
 
     void stopProviding() {
         mIsProviding = false;
+        //wait for stop thread
+        while (isRunning) {}
     }
 
     public native float[] signalProcess(int SOHandle_j);
 
     public native void bypassSignalProcess(int SOHandle_j, ByteBuffer buf_j, int buf_start_index_j);
 
+    public boolean isRunning(){
+        return isRunning;
+    }
 }

@@ -12,10 +12,14 @@
 
 //https://code.tutsplus.com/ko/tutorials/how-to-get-started-with-androids-native-development-kit--cms-27605
 
+
+
+
+
 extern "C" {
 
 //define function here
-#define SO_ARRAY_SIZE 10
+#define SO_ARRAY_SIZE 3
 #define DELAY_BUFFER_SIZE 1024
 
 #define MODE_NONE 0
@@ -29,8 +33,8 @@ typedef struct {
     float y;
 } Point2D;
 
+#define MIXED_OUTPUT_LEN DELAY_BUFFER_SIZE*2
 typedef struct {
-    int x_size;
     float x[DELAY_BUFFER_SIZE];
     int idxHead;
 
@@ -40,7 +44,7 @@ typedef struct {
     float *inputSound;
     int inputSoundSize;
 
-    float mixedOutput[1024];
+    float mixedOutput[MIXED_OUTPUT_LEN];
     int N;
 
 
@@ -106,6 +110,8 @@ void updateRadius(int handle) {
 #define PUSHABLE_SIZE_PER_CHANNEL 32
 #define PUSHABLE_SIZE PUSHABLE_SIZE_PER_CHANNEL*2
 JNIEXPORT jfloatArray JNICALL
+
+
 Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundProvider_signalProcess(
         JNIEnv *env,
         jobject, /* this */
@@ -230,13 +236,10 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_initSoundObject(
 
     SoundObject &unit = SOList[genNewSOHandle()];
 
-    unit.x_size = x_size_j;
-    for (int i = 0; i < x_size_j; i++) {
+    for (int i = 0; i < DELAY_BUFFER_SIZE; i++)
         unit.x[i] = 0;
-    }
-    for (int i = 0; i < x_size_j * 2; i++) {
+    for (int i = 0; i < MIXED_OUTPUT_LEN; i++)
         unit.mixedOutput[i] = 0;
-    }
 
     unit.angle = 0;
     unit.distance = 0;
@@ -264,20 +267,61 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_loadSound(
 
     SoundObject &unit = SOList[handle_j];
 
+    LOGI("load sound clear x ");
+    for (int i = 0; i < DELAY_BUFFER_SIZE; i++) {
+        unit.x[i] = 0;
+    }
+
+    LOGI("load sound clear mixedOutput ");
+    for (int i = 0; i < MIXED_OUTPUT_LEN; i++)
+        unit.mixedOutput[i] = 0;
+    unit.idxHead = 0;
     unit.inputSoundSize = env->GetArrayLength(sound_j_);
 
-    if (unit.inputSound != NULL)
-        free(unit.inputSound);
+//    if (unit.inputSound != NULL)
+//        free(unit.inputSound);
+
+    LOGI("loadSound malloc inputSound");
     unit.inputSound = (float *) malloc(sizeof(float) * unit.inputSoundSize);
     for (int i = 0; i < unit.inputSoundSize; i++) {
         unit.inputSound[i] = sound_j[i];
     }
 
+    LOGI("loadSound malloc address = %X", unit.inputSound);
+    LOGI("loadSound malloc size = %d", unit.inputSoundSize);
+
     env->ReleaseFloatArrayElements(sound_j_, sound_j, 0);
 }
 
+void unload(int handle) {
 
+    SoundObject &unit = SOList[genNewSOHandle()];
 
+    LOGI("unload sound clear x ");
+    for (int i = 0; i < DELAY_BUFFER_SIZE; i++)
+        unit.x[i] = 0;
+
+    LOGI("unload sound clear mixedOutput ");
+    for (int i = 0; i < MIXED_OUTPUT_LEN; i++)
+        unit.mixedOutput[i] = 0;
+
+    unit.idxHead = 0;
+    unit.inputSoundSize = 0;
+
+    LOGI("unload free address = %X", unit.inputSound);
+    if (unit.inputSound != NULL)
+        free(unit.inputSound);
+
+    LOGI("unload free address end");
+}
+
+JNIEXPORT void JNICALL
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_unloadSound(
+        JNIEnv *env,
+        jobject instance,
+        jint handle_j) {
+    unload(handle_j);
+}
 
 // get set angle , distance
 

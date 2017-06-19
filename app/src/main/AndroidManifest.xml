@@ -8,6 +8,7 @@
         android:label=""
         android:roundIcon="@drawable/icon"
         android:supportsRtl="true"
+        android:largeHeap="true"
         android:theme="@style/Theme.AppCompat.Light">
         <activity android:name=".MainActivity">
             <intent-filter>
