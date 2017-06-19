@@ -2,110 +2,77 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/MainActivityFrameLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="me.demetoir.a3dsound_ndk.MainActivity"
-    android:id="@+id/MainActivityFrameLayout">
+    tools:context="me.demetoir.a3dsound_ndk.MainActivity">
 
-    <LinearLayout
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/modeSelectFAB"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:fabSize="normal"
+        app:srcCompat="@android:drawable/ic_menu_preferences" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/playStopFAB"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:fabSize="normal"
+        app:srcCompat="@android:drawable/ic_media_play" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/closeSettingFAB"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:fabSize="mini"
+        app:srcCompat="@android:drawable/btn_dialog" />
+
+
+    <RelativeLayout
+        android:id="@+id/SimulatorMonitorLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:weightSum="22">
+        android:layout_height="wrap_content">
 
-        <RelativeLayout
-            android:id="@+id/SimulatorMonitorLayout"
+
+        <ImageView
+            android:id="@+id/orbit"
             android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true" />
+
+        <ImageView
+            android:id="@+id/head"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="20">
+            android:src="@drawable/man_head" />
 
-            <ImageView
-                android:id="@+id/head"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/man_head" />
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/orbit"/>
-
-            <ImageView
-                android:id="@+id/sound_source"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/flat_cycles_32x32"
-                />
-
-        </RelativeLayout>
-
-        <LinearLayout
+        <SeekBar
+            android:id="@+id/seekBarSoundObjectSpeed"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Switch
+            android:id="@+id/switchSoundObjectDirection"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:weightSum="4">
+            android:text="@string/switch_text"
+            android:textOff="@string/switch_direction_forward"
+            android:textOn="@string/switch_direction_reverse" />
 
-            <TextView
-                android:id="@+id/angleText"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="angle" />
-
-            <TextView
-                android:id="@+id/distanceTextView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="distance" />
-
-            <TextView
-                android:id="@+id/XcorTextView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="X" />
-
-            <TextView
-                android:id="@+id/YcorTextView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="Y" />
-
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
+        <Switch
+            android:id="@+id/switchSoundObjectSpeedRandomize"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:weightSum="2">
+            android:text="@string/switch_Sound_Object_Speed_Randomize" />
 
-            <Button
-                android:id="@+id/playButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/playButtonText" />
 
-            <Button
-                android:id="@+id/stopButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="@string/stopButtonText" />
+    </RelativeLayout>
 
-        </LinearLayout>
-
-    </LinearLayout>
 
 </FrameLayout>

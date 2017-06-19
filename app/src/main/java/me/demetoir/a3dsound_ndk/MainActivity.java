@@ -2,25 +2,29 @@ package me.demetoir.a3dsound_ndk;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.OvalShape;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
+import android.widget.SeekBar;
+import android.widget.Switch;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -30,6 +34,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+
+import me.demetoir.a3dsound_ndk.SoundEngine.SoundEngine;
+import me.demetoir.a3dsound_ndk.SoundEngine.SoundObjectView;
+import me.demetoir.a3dsound_ndk.SoundEngine.SoundOrbit;
+import me.demetoir.a3dsound_ndk.util.Point2D;
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
@@ -47,14 +56,8 @@ public class MainActivity extends AppCompatActivity {
     private final static int MAX_SOHANDLE_SIZE = 10;
     private final static int DEFAULT_SO_HANDLE = 0;
 
-    private double mAngle;
-    private double mDistance;
-    private float mSOXcor;
-    private float mSOYcor;
-    private float mOldXcor;
-    private float mOldYcor;
-    private float mHeadXcor;
-    private float mHeadYcor;
+
+    private Point2D mHeadCenterPoint;
 
     private float[] mSoundArray;
 
@@ -62,24 +65,23 @@ public class MainActivity extends AppCompatActivity {
     private SoundEngine mSoundEngine;
     private int[] mSOHandleList;
 
-    // BUTTTON
-    private Button mPlayBtn;
-    private Button mStopBtn;
+    // FloatingActionButton
+    private FloatingActionButton mPlayStopFAB;
+    private FloatingActionButton mModeSelectFAB;
+    private FloatingActionButton mCloseSettingFAB;
 
-    // TEXTView
-    private TextView mAngleTextView;
+    private SeekBar mSelectSpeedSeekBar;
+    private Switch mSelectDirectionSwitch;
+    private Switch mSelectSpeedRandomizeSwitch;
 
-    private TextView mDistanceTextView;
-    private TextView mXcorTextView;
-    private TextView mYcorTextView;
+    // IMAGE View
+    private SoundObjectView mSOView;
 
-    // IMAGEView
-    private ImageView mSoundSourceimageView;
-
-    private OrbitView mOrbitView;
+    private int mStrLoadedSoundID;
 
 
     public MainActivity() {
+        mHeadCenterPoint = new Point2D();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -93,17 +95,34 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
-        initButtons();
-        initTextView();
-
+//        TODO delete
         soundSourceCheck();
 
+        // add mSOView to layer
+        mSOView = new SoundObjectView(this);
+        ((FrameLayout) findViewById(R.id.MainActivityFrameLayout)).addView(mSOView);
 
+        // load sound
+        mSoundArray = loadMonoSound(R.raw.sound_scissors);
+        mStrLoadedSoundID = R.string.sound_scissors;
 
-        mSoundArray = loadMonoSound(R.raw.raw_devil);
-
+        // init AudioTrack
         initAudioTrack();
 
+        // init SoundEngine
+        initSoundEngine();
+
+        // init sound object view
+        mSOView.setSoundEngine(mSoundEngine);
+        mSOView.setOnTouchListener(onTouchListenerSOView);
+        mSoundEngine.setSOOrbitView(DEFAULT_SO_HANDLE, mSOView);
+
+        // init fab and setting ui
+        initFABs();
+        initSettingUi();
+    }
+
+    private void initSoundEngine() {
         mSOHandleList = new int[MAX_SOHANDLE_SIZE];
         mSoundEngine = new SoundEngine(mAudioTrack);
         mSoundEngine.loadHRTF_database(
@@ -111,26 +130,88 @@ public class MainActivity extends AppCompatActivity {
                 loadHRTFdatabase(R.raw.right_hrtf_database),
                 MAX_ANGLE_INDEX_SIZE);
 
-        mSOHandleList[DEFAULT_SO_HANDLE] = mSoundEngine.makeNewSO(1000, 0, 0, mSoundArray);
+        mSoundEngine.setSoundObjectView(DEFAULT_SO_HANDLE, mSOView);
 
+        Point2D p = new Point2D(200, 0);
+        mSOHandleList[DEFAULT_SO_HANDLE] = mSoundEngine.makeNewSO(p, mSoundArray);
+        mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, p);
 
+        Point2D centerP = new Point2D();
+        mSoundEngine.setSOCenterPoint(DEFAULT_SO_HANDLE, centerP);
 
-        mOrbitView = new OrbitView(this);
-        ((FrameLayout) findViewById(R.id.MainActivityFrameLayout)).addView(mOrbitView);
+        Point2D startP = new Point2D(200, 0);
+        mSoundEngine.setSOStartPoint(DEFAULT_SO_HANDLE, startP);
 
-        //set image round
-        mSoundSourceimageView = (ImageView) findViewById(R.id.sound_source);
-        mSoundSourceimageView.setBackground(new ShapeDrawable(new OvalShape()));
-        mSoundSourceimageView.setClipToOutline(true);
-        mSoundSourceimageView.setOnTouchListener(onTouchListener);
+        Point2D endP = new Point2D(-200, 0);
+        mSoundEngine.setSOEndPoint(DEFAULT_SO_HANDLE, endP);
 
+        mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_NONE);
+
+        mSoundEngine.setMainActivity(this);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+//        return super.onCreateOptionsMenu(menu);
+        return true;
+    }
+
+
+    void cleanUPUI() {
+        mSelectSpeedSeekBar.setClickable(false);
+        mSelectSpeedSeekBar.setVisibility(View.GONE);
+
+        mCloseSettingFAB.setClickable(false);
+        mCloseSettingFAB.setVisibility(View.GONE);
+
+        mSelectDirectionSwitch.setClickable(false);
+        mSelectDirectionSwitch.setVisibility(View.GONE);
+
+        mSelectSpeedRandomizeSwitch.setClickable(false);
+        mSelectSpeedRandomizeSwitch.setVisibility(View.GONE);
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_select_sound:
+                Toast.makeText(this, "shit", Toast.LENGTH_SHORT).show();
+                return true;
+            case R.id.menu_set_speed:
+                cleanUPUI();
+                mSelectSpeedSeekBar.setVisibility(View.VISIBLE);
+                mSelectSpeedSeekBar.setClickable(true);
+                mSelectSpeedSeekBar.setProgress(50);
+                mSelectSpeedRandomizeSwitch.setClickable(true);
+                mSelectSpeedRandomizeSwitch.setVisibility(View.VISIBLE);
+                mCloseSettingFAB.setClickable(true);
+                mCloseSettingFAB.setVisibility(View.VISIBLE);
+                return true;
+            case R.id.menu_set_direction:
+                cleanUPUI();
+                mSelectDirectionSwitch.setVisibility(View.VISIBLE);
+                mSelectDirectionSwitch.setClickable(true);
+                int direction = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE).getDirection();
+                if (direction == SoundOrbit.DIRECTION_FORWARD)
+                    mSelectDirectionSwitch.setChecked(false);
+                else
+                    mSelectDirectionSwitch.setChecked(true);
+                mCloseSettingFAB.setClickable(true);
+                mCloseSettingFAB.setVisibility(View.VISIBLE);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 
+        // TODO hack 필요
         ImageView headImageView = (ImageView) findViewById(R.id.head);
         int width = headImageView.getRight() - headImageView.getLeft();
         int height = headImageView.getBottom() - headImageView.getTop();
@@ -141,58 +222,131 @@ public class MainActivity extends AppCompatActivity {
 
         headImageView.setX(parentWidth / 2 - width / 2);
         headImageView.setY(parentHeight / 2 - height / 2);
-        mHeadXcor = parentWidth / 2;
-        mHeadYcor = parentHeight / 2;
 
-        mSoundSourceimageView.setX(mHeadXcor - mSoundSourceimageView.getWidth() / 2);
-        mSoundSourceimageView.setY(mHeadYcor - mSoundSourceimageView.getHeight() / 2);
-//
-        mOrbitView.setX(mHeadXcor);
-        mOrbitView.setY(mHeadYcor);
+        mHeadCenterPoint.x = parentWidth / 2;
+        mHeadCenterPoint.y = parentHeight / 2;
+
+        mSOView.setScreenCenterPoint(mHeadCenterPoint);
+
+        mSOView.update();
+    }
+
+    private void initFABs() {
+        mPlayStopFAB = (FloatingActionButton) findViewById(R.id.playStopFAB);
+        mPlayStopFAB.setOnTouchListener(mPlayStopFABOnTouchListener);
+        mPlayStopFAB.setImageResource(R.drawable.ic_media_play);
+
+        mPlayStopFAB.setX(40);
+        mPlayStopFAB.setY(1000);
+
+        mModeSelectFAB = (FloatingActionButton) findViewById(R.id.modeSelectFAB);
+        mModeSelectFAB.setOnTouchListener(mModeSelectFABOnTouchListener);
+        mModeSelectFAB.setX(575);
+        mModeSelectFAB.setY(40);
+
+        mCloseSettingFAB = (FloatingActionButton) findViewById(R.id.closeSettingFAB);
+        mCloseSettingFAB.setOnTouchListener(mCloseSettingFABOnTouchListener);
+        mCloseSettingFAB.setX(575);
+        mCloseSettingFAB.setY(1000);
+        mCloseSettingFAB.setClickable(false);
+        mCloseSettingFAB.setVisibility(View.GONE);
 
     }
 
-    private void initTextView() {
-        mAngleTextView = (TextView) findViewById(R.id.angleText);
-        mAngle = 0;
-        updateAngleTextView();
+    private void initSettingUi() {
+        // TODO implement
+        mSelectSpeedSeekBar = (SeekBar) findViewById(R.id.seekBarSoundObjectSpeed);
+        mSelectSpeedSeekBar.setOnSeekBarChangeListener(mSelectSpeedSeekBarOnSeekBarChangeListener);
+        mSelectSpeedSeekBar.setY(880);
+        mSelectSpeedSeekBar.setClickable(false);
+        mSelectSpeedSeekBar.setVisibility(View.GONE);
+        mSelectSpeedSeekBar.setMax(200);
+        mSelectSpeedSeekBar.setProgress(50);
 
-        mDistanceTextView = (TextView) findViewById(R.id.distanceTextView);
-        mDistance = 0;
-        updateDistanceTextView();
+        mSelectSpeedRandomizeSwitch = (Switch) findViewById(R.id.switchSoundObjectSpeedRandomize);
+        mSelectSpeedRandomizeSwitch.setOnCheckedChangeListener(mSelectSpeedRandomizeSwitchOnCheckedChangeListener);
+        mSelectSpeedRandomizeSwitch.setX(250);
+        mSelectSpeedRandomizeSwitch.setY(1000);
+        mSelectSpeedRandomizeSwitch.setClickable(false);
+        mSelectSpeedRandomizeSwitch.setVisibility(View.GONE);
 
-        mXcorTextView = (TextView) findViewById(R.id.XcorTextView);
-        updateXcorTextView();
-
-        mYcorTextView = (TextView) findViewById(R.id.YcorTextView);
-        updateYcorTextView();
+        mSelectDirectionSwitch = (Switch) findViewById(R.id.switchSoundObjectDirection);
+        mSelectDirectionSwitch.setOnCheckedChangeListener(mSelectDirectionSwitchOnCheckedChangeListener);
+        mSelectDirectionSwitch.setX(300);
+        mSelectDirectionSwitch.setY(1000);
+        mSelectDirectionSwitch.setClickable(false);
+        mSelectDirectionSwitch.setVisibility(View.GONE);
     }
 
-    private void initButtons() {
-        mPlayBtn = (Button) findViewById(R.id.playButton);
-        mPlayBtn.setOnClickListener(mPlayBtnOnClickListener);
 
-        mStopBtn = (Button) findViewById(R.id.stopButton);
-        mStopBtn.setOnClickListener(mStopBtnOnClickListener);
+    private Switch.OnCheckedChangeListener mSelectSpeedRandomizeSwitchOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            mSelectSpeedRandomizeSwitchOnCheckedChangeListener_(isChecked);
+        }
+    };
 
+    private void mSelectSpeedRandomizeSwitchOnCheckedChangeListener_(boolean isChecked) {
+        Log.i(TAG, "onTouch: mSelectSpeedRandomizeSwitchOnCheckedChangeListener_");
+
+        SoundOrbit soundOrbit = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE);
+        soundOrbit.setRandomizeSpeed(isChecked);
     }
 
-    private void updateAngleTextView() {
-        mAngleTextView.setText(String.format(getResources().getString(R.string.textAngleFormat),
-                mAngle));
-    }
+    private SeekBar.OnSeekBarChangeListener mSelectSpeedSeekBarOnSeekBarChangeListener
+            = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            Log.i(TAG, "onProgressChanged: ");
+            int max = seekBar.getMax();
+            double speed = ((double) progress / (double) max) * SoundOrbit.MAX_SPEED
+                    + SoundOrbit.MIN_SPEED;
 
-    private void updateDistanceTextView() {
-        mDistanceTextView.setText(String.format(getResources().getString(R.string.textDistanceFormat), mDistance));
-    }
 
-    private void updateXcorTextView() {
-        mXcorTextView.setText(String.format(getResources().getString(R.string.textXcorFormat), mSOXcor));
-    }
+            mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE)
+                    .setSpeed((float) speed);
+        }
 
-    private void updateYcorTextView() {
-        mYcorTextView.setText(String.format(getResources().getString(R.string.textYcorFormat), mSOYcor));
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            Log.i(TAG, "onStartTrackingTouch: ");
+        }
 
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            Log.i(TAG, "onStopTrackingTouch: ");
+        }
+    };
+
+    private Switch.OnCheckedChangeListener mSelectDirectionSwitchOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            mSelectDirectionSwitchOnCheckedChangeListener_(isChecked);
+        }
+    };
+
+
+    private void mSelectDirectionSwitchOnCheckedChangeListener_(boolean isChecked) {
+        Log.i(TAG, "onTouch: mSelectDirectionSwitchOnCheckedChangeListener");
+
+        SoundOrbit soundOrbit = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE);
+        if (isChecked) {
+            soundOrbit.setDirection(SoundOrbit.DIRECTION_REVERSE);
+        } else {
+            soundOrbit.setDirection(SoundOrbit.DIRECTION_FORWARD);
+        }
+
+        // TODO 함수화
+        //
+        Point2D startP = new Point2D();
+        mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, startP);
+        Point2D endP = new Point2D();
+        mSoundEngine.getSOEndPoint(DEFAULT_SO_HANDLE, endP);
+
+        Point2D nStartP = new Point2D(endP);
+        Point2D nEndP = new Point2D(startP);
+        mSoundEngine.setSOStartPoint(DEFAULT_SO_HANDLE, nStartP);
+        mSoundEngine.setSOEndPoint(DEFAULT_SO_HANDLE, nEndP);
     }
 
     private void soundSourceCheck() {
@@ -203,7 +357,6 @@ public class MainActivity extends AppCompatActivity {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
     }
 
     public void CopyIfNotExist(int resID, String target) throws IOException {
@@ -247,83 +400,208 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private Button.OnClickListener mPlayBtnOnClickListener = new View.OnClickListener() {
-        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-        @Override
-        public void onClick(View v) {
-            mSoundEngine.start();
-        }
-    };
-
-    private Button.OnClickListener mStopBtnOnClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            mSoundEngine.stop();
-        }
-    };
-
-    private ImageView.OnTouchListener onTouchListener = new View.OnTouchListener() {
+    private Button.OnTouchListener mPlayStopFABOnTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-            int width = ((ViewGroup) v.getParent()).getWidth() - v.getWidth();
-            int height = ((ViewGroup) v.getParent()).getHeight() - v.getHeight();
-
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                mOldXcor = event.getX();
-                mOldYcor = event.getY();
-            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                v.setX(event.getRawX() - mOldXcor);
-                v.setY(event.getRawY() - mOldYcor);
-            } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                if (v.getX() > width && v.getY() > height) {
-                    v.setX(width);
-                    v.setY(height);
-                } else if (v.getX() < 0 && v.getY() > height) {
-                    v.setX(0);
-                    v.setY(height);
-                } else if (v.getX() > width && v.getY() < 0) {
-                    v.setX(width);
-                    v.setY(0);
-                } else if (v.getX() < 0 && v.getY() < 0) {
-                    v.setX(0);
-                    v.setY(0);
-                } else if (v.getX() < 0 || v.getX() > width) {
-                    if (v.getX() < 0) {
-                        v.setX(0);
-                        v.setY(event.getRawY() - mOldYcor - v.getHeight());
-                    } else {
-                        v.setX(width);
-                        v.setY(event.getRawY() - mOldYcor - v.getHeight());
-                    }
-                } else if (v.getY() < 0 || v.getY() > height) {
-                    if (v.getY() < 0) {
-                        v.setX(event.getRawX() - mOldXcor);
-                        v.setY(0);
-                    } else {
-                        v.setX(event.getRawX() - mOldXcor);
-                        v.setY(height);
-                    }
-                }
-            }
-
-            mSOXcor = v.getX() - (mHeadXcor) + v.getWidth() / 2;
-            mSOYcor = -(v.getY() - (mHeadYcor)) - v.getHeight() / 2;
-            updateXcorTextView();
-            updateYcorTextView();
-
-            mSoundEngine.setSOX(DEFAULT_SO_HANDLE, mSOXcor);
-            mSoundEngine.setSOY(DEFAULT_SO_HANDLE, mSOYcor);
-
-            mAngle = mSoundEngine.getSOAngle(DEFAULT_SO_HANDLE);
-            mDistance = mSoundEngine.getSODistance(DEFAULT_SO_HANDLE);
-            updateAngleTextView();
-            updateDistanceTextView();
-
-            mOrbitView.setRadius((float) mDistance);
-            mOrbitView.invalidate();
-            return true;
+            return mPlayStopFABOnTouchListener_(event);
         }
     };
+
+    private boolean mPlayStopFABOnTouchListener_(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (!mSoundEngine.isPlaying()) {
+                mPlayStopFAB.setImageResource(R.drawable.ic_media_pause);
+                mSoundEngine.start();
+                mSoundEngine.startSOOrbit(DEFAULT_SO_HANDLE);
+                Log.i(TAG, "onClick: start");
+            } else {
+                mPlayStopFAB.setImageResource(R.drawable.ic_media_play);
+                mSoundEngine.stop();
+                mSoundEngine.stopSOOrbit(DEFAULT_SO_HANDLE);
+                Log.i(TAG, "onClick: stop");
+            }
+        }
+        return false;
+    }
+
+    private Button.OnTouchListener mModeSelectFABOnTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            return mModeSelectFABOnTouchListener_(event);
+        }
+    };
+
+    private boolean mModeSelectFABOnTouchListener_(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            int mode = mSoundEngine.getOrbitMode(DEFAULT_SO_HANDLE);
+            //set circle to  line
+            if (mode == SoundEngine.MODE_CIRCLE) {
+                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_LINE);
+
+                Point2D p = new Point2D();
+                mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, p);
+                mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, p);
+                mSOView.update();
+                Toast.makeText(this, "line orbit", Toast.LENGTH_SHORT).show();
+            }
+            // line to random
+            else if (mode == SoundEngine.MODE_LINE) {
+                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_RANDOM);
+                mSOView.update();
+                Toast.makeText(this, "random orbit", Toast.LENGTH_SHORT).show();
+
+            }
+            // random to circle
+            else if (mode == SoundEngine.MODE_RANDOM) {
+                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_NONE);
+                Toast.makeText(this, "free orbit", Toast.LENGTH_SHORT).show();
+
+                mSOView.update();
+            } else if (mode == SoundEngine.MODE_NONE) {
+                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_CIRCLE);
+                mSOView.update();
+                Toast.makeText(this, "circle orbit", Toast.LENGTH_SHORT).show();
+
+            }
+//            Log.i(TAG, "onClick: menu");
+        }
+        return false;
+    }
+
+    private Button.OnTouchListener mCloseSettingFABOnTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            return mCloseSettingFABOnTouchListener_(event);
+        }
+    };
+
+    private boolean mCloseSettingFABOnTouchListener_(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            cleanUPUI();
+        }
+        return false;
+    }
+
+    private SoundObjectView.OnTouchListener onTouchListenerSOView = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            return onTouchListenerSOView_(v, event);
+        }
+    };
+
+    private boolean onTouchListenerSOView_(View v, MotionEvent event) {
+        SoundObjectView SOView = (SoundObjectView) v;
+        int orbitMode = mSoundEngine.getOrbitMode(DEFAULT_SO_HANDLE);
+        float eX = event.getX();
+        float eY = event.getY();
+//        Log.i(TAG, "onTouch: w " + SOView.getWidth() + "  h " + SOView.getHeight());
+//        Log.i(TAG, "onTouch: " + eX + "  " + eY);
+
+        // screen point to point
+        Point2D newP = new Point2D(eX - mHeadCenterPoint.x, -eY + mHeadCenterPoint.y);
+
+        int action = event.getAction();
+        if (action == MotionEvent.ACTION_DOWN) {
+            int object = SOView.pointingObject(newP);
+            Log.i(TAG, "onTouchListenerSOView_: touch " + object);
+            if (object == SoundObjectView.TOUCHING_NONE) {
+                return false;
+            } else {
+                SOView.setTouchingObject(object);
+                SOView.setTouching(true);
+                return true;
+            }
+        } else if (action == MotionEvent.ACTION_MOVE && SOView.IsTouching()) {
+            int object = SOView.getTouchingObject();
+
+            if (object == SoundObjectView.TOUCHING_SOUND_OBJECT) {
+                Point2D oldP = new Point2D();
+                mSoundEngine.getSOPoint(DEFAULT_SO_HANDLE, oldP);
+
+                if (orbitMode == SoundEngine.MODE_LINE) {
+                    Point2D dP = newP.sub(oldP);
+
+                    Point2D oldStartP = new Point2D();
+                    mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, oldStartP);
+                    mSoundEngine.setSOStartPoint(DEFAULT_SO_HANDLE, oldStartP.add(dP));
+
+                    Point2D oldEndP = new Point2D();
+                    mSoundEngine.getSOEndPoint(DEFAULT_SO_HANDLE, oldEndP);
+                    mSoundEngine.setSOEndPoint(DEFAULT_SO_HANDLE, oldEndP.add(dP));
+                }
+
+                mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, newP);
+
+                Log.i(TAG, "onTouch: move");
+
+            } else if (object == SoundObjectView.TOUCHING_CENTER_POINT
+                    && orbitMode == SoundEngine.MODE_CIRCLE) {
+                mSoundEngine.setSOCenterPoint(DEFAULT_SO_HANDLE, newP);
+                Log.i(TAG, "onTouchListenerSOView_: circle point move");
+                Log.i(TAG, "onTouch: move");
+
+            } else if (object == SoundObjectView.TOUCHING_LINE_END_POINT
+                    && orbitMode == SoundEngine.MODE_LINE) {
+
+                Point2D oldSOP = new Point2D();
+                mSoundEngine.getSOPoint(DEFAULT_SO_HANDLE, oldSOP);
+
+                Point2D oldEndP = new Point2D();
+                mSoundEngine.getSOEndPoint(DEFAULT_SO_HANDLE, oldEndP);
+
+                Point2D startP = new Point2D();
+                mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, startP);
+
+                double r = startP.distance(oldSOP);
+
+                double angle = startP.angle(newP);
+                double dx = r * Math.cos(angle);
+                double dy = r * Math.sin(angle);
+
+                Point2D newSOP = startP.sub(dx, dy);
+                mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, newSOP);
+
+                mSoundEngine.setSOEndPoint(DEFAULT_SO_HANDLE, newP);
+
+                Log.i(TAG, "onTouch: move");
+            } else if (object == SoundObjectView.TOUCHING_LINE_START_POINT
+                    && orbitMode == SoundEngine.MODE_LINE) {
+
+                Point2D oldSOP = new Point2D();
+                mSoundEngine.getSOPoint(DEFAULT_SO_HANDLE, oldSOP);
+
+                Point2D endP = new Point2D();
+                mSoundEngine.getSOEndPoint(DEFAULT_SO_HANDLE, endP);
+
+                Point2D oldStartP = new Point2D();
+                mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, oldStartP);
+
+                Point2D newStartP = newP;
+
+                double r = oldStartP.distance(oldSOP);
+                double angle = newStartP.angle(endP);
+                double dx = r * Math.cos(angle);
+                double dy = r * Math.sin(angle);
+
+                Point2D newSOP = newStartP.sub(dx, dy);
+                mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, newSOP);
+
+                mSoundEngine.setSOStartPoint(DEFAULT_SO_HANDLE, newStartP);
+                Log.i(TAG, "onTouch: move");
+            }
+
+            SOView.update();
+            return true;
+
+        } else if (action == MotionEvent.ACTION_UP) {
+            SOView.setTouching(false);
+            SOView.setTouchingObject(SoundObjectView.TOUCHING_NONE);
+            return false;
+        }
+
+        return false;
+    }
+
 
     float[][] loadHRTFdatabase(int resId_HRTFDatabase) {
         float[][] HRTFdatabase = new float[MAX_ANGLE_INDEX_SIZE][HTRF_SIZE];
@@ -378,7 +656,6 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < size; i++) {
                 monoSound[i] = shorts.get(i);
             }
-
             Log.i(TAG, "loadSound: sound length : " + Integer.toString(size));
         }
 
@@ -402,6 +679,4 @@ public class MainActivity extends AppCompatActivity {
         }
         return floats;
     }
-
-
 }
