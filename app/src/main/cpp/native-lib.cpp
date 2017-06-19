@@ -22,53 +22,10 @@
 
 
 
+
+
+
 extern "C" {
-
-//const double PI = 3.141592653589793238460;
-//typedef std::complex<double> Complex;
-//typedef std::valarray<Complex> CArray;
-//using namespace std;
-//
-//// Cooley–Tukey FFT (in-place, divide-and-conquer)
-//// Higher memory requirements and redundancy although more intuitive
-//void fft(CArray& x)
-//{
-//    const size_t N = x.size();
-//    if (N <= 1) return;
-//
-//    // divide
-//    CArray even = x[std::slice(0, N/2, 2)];
-//    CArray  odd = x[std::slice(1, N/2, 2)];
-//
-//    // conquer
-//    fft(even);
-//    fft(odd);
-//
-//    // combine
-//    for (size_t k = 0; k < N/2; ++k)
-//    {
-//        Complex t = std::polar(1.0, -2 * PI * k / N) * odd[k];
-//        x[k    ] = even[k] + t;
-//        x[k+N/2] = even[k] - t;
-//    }
-//}
-//
-//// inverse fft (in-place)
-//void ifft(CArray &x) {
-//    // conjugate the complex numbers
-//    x = x.apply(std::conj);
-//
-//    // forward fft
-//    fft(x);
-//
-//    // conjugate the complex numbers again
-//    x = x.apply(std::conj);
-//
-//    // scale the numbers
-//    x /= x.size();
-//}
-//
-
 
 //define function here
 #define SO_ARRAY_SIZE 10
@@ -162,8 +119,14 @@ void updateRadius(int handle) {
 #define PUSHABLE_SIZE_PER_CHANNEL 32
 #define PUSHABLE_SIZE PUSHABLE_SIZE_PER_CHANNEL*2
 
+
+
+
+
+
+
 JNIEXPORT jfloatArray JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundProvider_signalProcess(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundProvider_signalProcess(
         JNIEnv *env,
         jobject, /* this */
         jint SOHandle_j) {
@@ -211,7 +174,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundProvider_signalProcess(
 
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundProvider_bypassSignalProcess(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundProvider_bypassSignalProcess(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -344,7 +307,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundProvider_bypassSignalProcess(
 #define HRTF_CHANNEL_LEFT 0
 #define HRTF_CHANNEL_RIGHT 1
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_loadHRTF(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_loadHRTF(
         JNIEnv *env,
         jobject/* this */,
         jfloatArray HRTF_database_j,
@@ -376,8 +339,11 @@ int genNewSOHANDLE() {
     return 0;
 }
 
+
+
+
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_initSoundObject(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_initSoundObject(
         JNIEnv *env,
         jobject/* this */,
         jint x_size_j,
@@ -410,8 +376,10 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_initSoundObject(
 
 }
 
-JNIEXPORT jint JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_loadSound(
+
+
+JNIEXPORT void JNICALL
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_loadSound(
         JNIEnv *env,
         jobject instance,
         jint handle_j,
@@ -434,10 +402,11 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_loadSound(
 
 
 
+
 // get set angle , distance
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOAngle
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_setSOAngle
         (JNIEnv *env,
          jobject instance,
          jint handle_j,
@@ -447,7 +416,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOAngle
 }
 
 JNIEXPORT jfloat JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOAngle(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getSOAngle(
         JNIEnv *env,
         jobject instance,
         jint handle_j) {
@@ -456,7 +425,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOAngle(
 }
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSODistance(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_setSODistance(
         JNIEnv *env,
         jobject instance,
         jint handle_j,
@@ -466,7 +435,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSODistance(
 }
 
 JNIEXPORT jfloat JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSODistance(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getSODistance(
         JNIEnv *env,
         jobject instance,
         jint handle_j) {
@@ -504,7 +473,7 @@ Point2D jPoint2DToCPoint2D(JNIEnv *env, jobject p_j) {
 }
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOPoint(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getSOPoint(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -514,7 +483,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOPoint(
 }
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOPoint(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_setSOPoint(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -531,7 +500,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOPoint(
 
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOCenterPoint(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getSOCenterPoint(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -541,7 +510,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOCenterPoint(
 }
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOCenterPoint(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_setSOCenterPoint(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -555,7 +524,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOCenterPoint(
 }
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOStartPoint(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getSOStartPoint(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -565,7 +534,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOStartPoint(
 }
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOStartPoint(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_setSOStartPoint(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -577,7 +546,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOStartPoint(
 }
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOEndPoint(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getSOEndPoint(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -587,7 +556,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOEndPoint(
 }
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOEndPoint(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_setSOEndPoint(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -601,7 +570,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSOEndPoint(
 
 
 JNIEXPORT jfloat JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSORadius(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getSORadius(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j) {
@@ -610,7 +579,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSORadius(
 }
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSORadius(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_setSORadius(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -621,7 +590,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setSORadius(
 
 
 JNIEXPORT jfloat JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOCenterAngle(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getSOCenterAngle(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j) {
@@ -632,7 +601,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getSOCenterAngle(
 
 
 JNIEXPORT jint JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_getOrbitMode(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getOrbitMode(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j) {
@@ -641,7 +610,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_getOrbitMode(
 }
 
 JNIEXPORT void JNICALL
-Java_me_demetoir_a3dsound_1ndk_SoundEngine_setOrbitMode(
+Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_setOrbitMode(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j,
@@ -653,6 +622,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_setOrbitMode(
 
 ///test funciton
 ////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 
