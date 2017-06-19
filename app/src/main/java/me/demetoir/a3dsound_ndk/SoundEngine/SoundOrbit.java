@@ -12,17 +12,12 @@ import me.demetoir.a3dsound_ndk.util.Point2D;
 public class SoundOrbit extends Thread {
     private final static String TAG = "soundOrbit ";
 
-    public final static int MODE_NONE = 0;
-    public final static int MODE_CIRCLE = 1;
-    public final static int MODE_LINE = 2;
-    public final static int MODE_RANDOM = 3;
-
-    public final static int FRAME_RATE = 25;
-    public final static int UPDATE_TIME_INTERVAL = 1000 / FRAME_RATE;
-    public final static int THREAD_WAKE_UP_TIME = 1000 / FRAME_RATE;
-    public final static double DX_ANGLE = 1.15;
-    public final static double EPSILON = 1e-4;
-    public final static double DEFAULT_SPEED = 3.0;
+    private final static int FRAME_RATE = 25;
+    private final static int UPDATE_TIME_INTERVAL = 1000 / FRAME_RATE;
+    private final static int THREAD_WAKE_UP_TIME = 1000 / FRAME_RATE;
+    private final static double DX_ANGLE = 1.15;
+    private final static double EPSILON = 1e-4;
+    private final static double DEFAULT_SPEED = 3.0;
     public final static double MAX_SPEED = DEFAULT_SPEED * 3;
     public final static double MIN_SPEED = 0;
 
@@ -56,9 +51,9 @@ public class SoundOrbit extends Thread {
         mSOHandle = SOHandle;
         mIsRunning = false;
         mSpeed = DEFAULT_SPEED;
-        mDirection = 1;
+        mDirection = DIRECTION_FORWARD;
         mRandomIntervalCnt = 0;
-        mInternalOrbitMode = MODE_NONE;
+        mInternalOrbitMode = SoundEngine.MODE_FREE;
         mRandom = new Random();
         mIsReachLineEnd = false;
         mIsRandomizeSpeed = false;
@@ -108,16 +103,16 @@ public class SoundOrbit extends Thread {
     private void update() {
         int orbitMode = mSoundEngine.getOrbitMode(mSOHandle);
         switch (orbitMode) {
-            case MODE_CIRCLE:
+            case SoundEngine.MODE_CIRCLE:
                 updateCircleOrbit();
                 break;
-            case MODE_LINE:
+            case SoundEngine.MODE_LINE:
                 updateLineOrbit();
                 break;
-            case MODE_RANDOM:
+            case SoundEngine.MODE_RANDOM:
                 updateRandomOrbit();
                 break;
-            case MODE_NONE:
+            case SoundEngine.MODE_FREE:
                 break;
             default:
                 break;
@@ -181,9 +176,9 @@ public class SoundOrbit extends Thread {
     private void updateRandomOrbit() {
         mRandomIntervalCnt -= 1;
 
-        if (mInternalOrbitMode == MODE_CIRCLE) {
+        if (mInternalOrbitMode == SoundEngine.MODE_CIRCLE) {
             updateCircleOrbit();
-        } else if (mInternalOrbitMode == MODE_LINE) {
+        } else if (mInternalOrbitMode == SoundEngine.MODE_LINE) {
             updateLineOrbit();
         }
 
@@ -195,7 +190,7 @@ public class SoundOrbit extends Thread {
             randomizeInternalOrbitMode();
             mRandomIntervalCnt = RANDOM_INTERVAL_MAX_CNT;
 
-            if (mInternalOrbitMode == MODE_LINE) {
+            if (mInternalOrbitMode == SoundEngine.MODE_LINE) {
                 if (mIsRandomizeSpeed) {
                     randomizeSpeed();
                 }
@@ -210,7 +205,7 @@ public class SoundOrbit extends Thread {
 
                 randEndP.randomize(SCREEN_LEFT, SCREEN_TOP, SCREEN_RIGHT, SCREEN_BOTTOM);
                 mSoundEngine.setSOEndPoint(mSOHandle, randEndP);
-            } else if (mInternalOrbitMode == MODE_CIRCLE) {
+            } else if (mInternalOrbitMode == SoundEngine.MODE_CIRCLE) {
                 // set mRandom speed and direction
                 if (isRandomizeSpeed()) {
                     randomizeSpeed();
@@ -234,7 +229,7 @@ public class SoundOrbit extends Thread {
     }
 
     private boolean isReachLineEnd() {
-        return mInternalOrbitMode == MODE_LINE && mIsReachLineEnd;
+        return mInternalOrbitMode == SoundEngine.MODE_LINE && mIsReachLineEnd;
     }
 
     private void randomizeSpeed() {

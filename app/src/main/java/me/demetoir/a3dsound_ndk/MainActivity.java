@@ -31,6 +31,7 @@ import me.demetoir.a3dsound_ndk.SoundEngine.SoundEngine;
 import me.demetoir.a3dsound_ndk.SoundEngine.SoundObjectView;
 import me.demetoir.a3dsound_ndk.SoundEngine.SoundOrbit;
 import me.demetoir.a3dsound_ndk.util.Point2D;
+import me.demetoir.a3dsound_ndk.util.Util;
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
@@ -53,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
 
     // FloatingActionButton
     private FloatingActionButton mPlayStopFAB;
-    private FloatingActionButton mModeSelectFAB;
     private FloatingActionButton mCloseSettingFAB;
 
     private SeekBar mSelectSpeedSeekBar;
@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
         // add mSOView to layer
         mSOView = new SoundObjectView(this);
         ((FrameLayout) findViewById(R.id.MainActivityFrameLayout)).addView(mSOView);
-
 
         // load sound
         // TODO 음원 로딩 기능...
@@ -119,27 +118,35 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "shit", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.menu_set_speed:
+                float speed = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE).getSpeed();
+                mSelectSpeedSeekBar.setProgress(Util.speedToProgress(speed,
+                        mSelectSpeedSeekBar.getMax()));
+
                 cleanUPUI();
                 mSelectSpeedSeekBar.setVisibility(View.VISIBLE);
                 mSelectSpeedSeekBar.setClickable(true);
-                mSelectSpeedSeekBar.setProgress(50);
                 mSelectSpeedRandomizeSwitch.setClickable(true);
                 mSelectSpeedRandomizeSwitch.setVisibility(View.VISIBLE);
                 mCloseSettingFAB.setClickable(true);
                 mCloseSettingFAB.setVisibility(View.VISIBLE);
                 return true;
             case R.id.menu_set_direction:
-                cleanUPUI();
-                mSelectDirectionSwitch.setVisibility(View.VISIBLE);
-                mSelectDirectionSwitch.setClickable(true);
                 int direction = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE).getDirection();
                 if (direction == SoundOrbit.DIRECTION_FORWARD)
                     mSelectDirectionSwitch.setChecked(false);
                 else
                     mSelectDirectionSwitch.setChecked(true);
+
+                cleanUPUI();
+                mSelectDirectionSwitch.setVisibility(View.VISIBLE);
+                mSelectDirectionSwitch.setClickable(true);
                 mCloseSettingFAB.setClickable(true);
                 mCloseSettingFAB.setVisibility(View.VISIBLE);
                 return true;
+            case R.id.menu_set_orbit:
+                rotateOrbitMode();
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -191,11 +198,6 @@ public class MainActivity extends AppCompatActivity {
         mPlayStopFAB.setX(40);
         mPlayStopFAB.setY(1000);
 
-        mModeSelectFAB = (FloatingActionButton) findViewById(R.id.modeSelectFAB);
-        mModeSelectFAB.setOnTouchListener(mModeSelectFABOnTouchListener);
-        mModeSelectFAB.setX(575);
-        mModeSelectFAB.setY(40);
-
         mCloseSettingFAB = (FloatingActionButton) findViewById(R.id.closeSettingFAB);
         mCloseSettingFAB.setOnTouchListener(mCloseSettingFABOnTouchListener);
         mCloseSettingFAB.setX(575);
@@ -232,11 +234,11 @@ public class MainActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     void initAudioTrack() {
-        int minSize = AudioTrack.getMinBufferSize(SoundBank.SAMPLING_RATE,
+        int minSize = AudioTrack.getMinBufferSize(SoundBank.DEFAULT_SAMPLING_RATE,
                 AudioFormat.CHANNEL_OUT_STEREO,
                 AudioFormat.ENCODING_PCM_FLOAT);
         mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-                SoundBank.SAMPLING_RATE,
+                SoundBank.DEFAULT_SAMPLING_RATE,
                 AudioFormat.CHANNEL_OUT_STEREO,
                 AudioFormat.ENCODING_PCM_FLOAT,
                 minSize,
@@ -270,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
         Point2D endP = new Point2D(-200, 0);
         mSoundEngine.setSOEndPoint(DEFAULT_SO_HANDLE, endP);
 
-        mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_NONE);
+        mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_DEFAULT);
     }
 
 
@@ -324,14 +326,8 @@ public class MainActivity extends AppCompatActivity {
             = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            Log.i(TAG, "onProgressChanged: ");
-            int max = seekBar.getMax();
-            double speed = ((double) progress / (double) max) * SoundOrbit.MAX_SPEED
-                    + SoundOrbit.MIN_SPEED;
-
-
             mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE)
-                    .setSpeed((float) speed);
+                    .setSpeed(Util.progressToSpeed(progress, seekBar.getMax()));
         }
 
         @Override
@@ -370,48 +366,37 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private Button.OnTouchListener mModeSelectFABOnTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            return mModeSelectFABOnTouchListener_(event);
+    private void rotateOrbitMode() {
+        int mode = mSoundEngine.getOrbitMode(DEFAULT_SO_HANDLE);
+        //set circle to  line
+        if (mode == SoundEngine.MODE_CIRCLE) {
+            mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_LINE);
+
+            Point2D p = new Point2D();
+            mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, p);
+            mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, p);
+            mSOView.update();
+            Toast.makeText(this, "line orbit", Toast.LENGTH_SHORT).show();
         }
-    };
+        // line to random
+        else if (mode == SoundEngine.MODE_LINE) {
+            mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_RANDOM);
+            mSOView.update();
+            Toast.makeText(this, "random orbit", Toast.LENGTH_SHORT).show();
 
-    private boolean mModeSelectFABOnTouchListener_(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            int mode = mSoundEngine.getOrbitMode(DEFAULT_SO_HANDLE);
-            //set circle to  line
-            if (mode == SoundEngine.MODE_CIRCLE) {
-                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_LINE);
-
-                Point2D p = new Point2D();
-                mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, p);
-                mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, p);
-                mSOView.update();
-                Toast.makeText(this, "line orbit", Toast.LENGTH_SHORT).show();
-            }
-            // line to random
-            else if (mode == SoundEngine.MODE_LINE) {
-                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_RANDOM);
-                mSOView.update();
-                Toast.makeText(this, "random orbit", Toast.LENGTH_SHORT).show();
-
-            }
-            // random to circle
-            else if (mode == SoundEngine.MODE_RANDOM) {
-                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_NONE);
-                Toast.makeText(this, "free orbit", Toast.LENGTH_SHORT).show();
-
-                mSOView.update();
-            } else if (mode == SoundEngine.MODE_NONE) {
-                mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_CIRCLE);
-                mSOView.update();
-                Toast.makeText(this, "circle orbit", Toast.LENGTH_SHORT).show();
-
-            }
-//            Log.i(TAG, "onClick: menu");
         }
-        return false;
+        // random to circle
+        else if (mode == SoundEngine.MODE_RANDOM) {
+            mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_FREE);
+            Toast.makeText(this, "free orbit", Toast.LENGTH_SHORT).show();
+
+            mSOView.update();
+        } else if (mode == SoundEngine.MODE_FREE) {
+            mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_CIRCLE);
+            mSOView.update();
+            Toast.makeText(this, "circle orbit", Toast.LENGTH_SHORT).show();
+
+        }
     }
 
     private Button.OnTouchListener mCloseSettingFABOnTouchListener = new View.OnTouchListener() {
@@ -447,7 +432,6 @@ public class MainActivity extends AppCompatActivity {
         int action = event.getAction();
         if (action == MotionEvent.ACTION_DOWN) {
             int object = SOView.pointingObject(newP);
-            Log.i(TAG, "onTouchListenerSOView_: touch " + object);
             if (object == SoundObjectView.TOUCHING_NONE) {
                 return false;
             } else {
@@ -476,13 +460,9 @@ public class MainActivity extends AppCompatActivity {
 
                 mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, newP);
 
-                Log.i(TAG, "onTouch: move");
-
             } else if (object == SoundObjectView.TOUCHING_CENTER_POINT
                     && orbitMode == SoundEngine.MODE_CIRCLE) {
                 mSoundEngine.setSOCenterPoint(DEFAULT_SO_HANDLE, newP);
-                Log.i(TAG, "onTouchListenerSOView_: circle point move");
-                Log.i(TAG, "onTouch: move");
 
             } else if (object == SoundObjectView.TOUCHING_LINE_END_POINT
                     && orbitMode == SoundEngine.MODE_LINE) {
@@ -507,7 +487,6 @@ public class MainActivity extends AppCompatActivity {
 
                 mSoundEngine.setSOEndPoint(DEFAULT_SO_HANDLE, newP);
 
-                Log.i(TAG, "onTouch: move");
             } else if (object == SoundObjectView.TOUCHING_LINE_START_POINT
                     && orbitMode == SoundEngine.MODE_LINE) {
 
@@ -531,7 +510,6 @@ public class MainActivity extends AppCompatActivity {
                 mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, newSOP);
 
                 mSoundEngine.setSOStartPoint(DEFAULT_SO_HANDLE, newStartP);
-                Log.i(TAG, "onTouch: move");
             }
 
             SOView.update();

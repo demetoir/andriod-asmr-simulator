@@ -16,13 +16,14 @@ public class SoundEngine {
         System.loadLibrary("native-lib");
     }
 
-    private final static int MAX_SPOHANDLE_SIZE = 10;
+    private final static int MAX_SO_HANDLE_SIZE = 10;
     private final static int DEFAULT_SO_HANDLE = 0;
 
-    public final static int MODE_NONE = 0;
+    public final static int MODE_FREE = 0;
     public final static int MODE_CIRCLE = 1;
     public final static int MODE_LINE = 2;
     public final static int MODE_RANDOM = 3;
+    public final static int MODE_DEFAULT = MODE_CIRCLE;
 
     private SoundProvider mProvider;
     private SoundConsumer mConsumer;
@@ -39,7 +40,7 @@ public class SoundEngine {
         mAudioTrack = audioTrack;
         mSoundBuffer = new SoundBuffer();
 
-        SPOHandleList = new int[MAX_SPOHANDLE_SIZE];
+        SPOHandleList = new int[MAX_SO_HANDLE_SIZE];
 
         mConsumer = new SoundConsumer(mSoundBuffer, mAudioTrack);
         mProvider = new SoundProvider(mSoundBuffer, DEFAULT_SO_HANDLE);

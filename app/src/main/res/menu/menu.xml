@@ -16,4 +16,9 @@
         android:icon="@drawable/icon"
         android:title="@string/menu_set_direction" />
 
+    <item
+        android:id="@+id/menu_set_orbit"
+        android:icon="@drawable/icon"
+        android:title="@string/menu_set_orbit" />
+
 </menu>

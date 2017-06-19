@@ -37,6 +37,7 @@
     <string name="switch_direction_reverse">역방향  </string>
     <string name="switch_text">역방향</string>
     <string name="switch_Sound_Object_Speed_Randomize">속도 랜덤화</string>
+    <string name="menu_set_orbit">궤도 변경</string>
 
 
 </resources>

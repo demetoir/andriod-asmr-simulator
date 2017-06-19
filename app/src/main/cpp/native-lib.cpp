@@ -105,8 +105,6 @@ void updateRadius(int handle) {
 
 #define PUSHABLE_SIZE_PER_CHANNEL 32
 #define PUSHABLE_SIZE PUSHABLE_SIZE_PER_CHANNEL*2
-
-
 JNIEXPORT jfloatArray JNICALL
 Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundProvider_signalProcess(
         JNIEnv *env,

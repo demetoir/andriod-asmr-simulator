@@ -21,7 +21,7 @@ import me.demetoir.a3dsound_ndk.util.Util;
 import static android.content.ContentValues.TAG;
 
 public class SoundBank {
-    public final static int SAMPLING_RATE = 44100;
+    public final static int DEFAULT_SAMPLING_RATE = 44100;
     public final static float DEFAULT_VOLUME = 3.0f;
 
     public final static int SOUND_BIRD = R.raw.sound_bird;
@@ -78,6 +78,7 @@ public class SoundBank {
     }
 
 
+    // TODO imp ?
     private void soundSourceCheck() {
         String strbellPath = "/data/data/me.demetoir.a3dsound_ndk/files/raw_devil.snd";
         try {
@@ -88,7 +89,7 @@ public class SoundBank {
         }
     }
 
-    public void CopyIfNotExist(int resID, String target) throws IOException {
+    private void CopyIfNotExist(int resID, String target) throws IOException {
         File targetFile = new File(target);
         if (!targetFile.exists()) {
             Log.i(TAG, "CopyIfNotExist: file not exist");
@@ -98,7 +99,7 @@ public class SoundBank {
         }
     }
 
-    public void CopyFromPackage(int resID, String target) throws IOException {
+    private void CopyFromPackage(int resID, String target) throws IOException {
         FileOutputStream lOutputStream = mMainActivity.openFileOutput(target, Context.MODE_PRIVATE);
         InputStream lInputStream = mMainActivity.getResources().openRawResource(resID);
         int readByte;
@@ -112,6 +113,4 @@ public class SoundBank {
         lOutputStream.close();
         lInputStream.close();
     }
-
-
 }

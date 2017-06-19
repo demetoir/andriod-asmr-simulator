@@ -8,14 +8,6 @@
     tools:context="me.demetoir.a3dsound_ndk.MainActivity">
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/modeSelectFAB"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        app:fabSize="normal"
-        app:srcCompat="@android:drawable/ic_menu_preferences" />
-
-    <android.support.design.widget.FloatingActionButton
         android:id="@+id/playStopFAB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
