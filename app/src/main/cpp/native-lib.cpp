@@ -5,25 +5,12 @@
 #include <valarray>
 
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "libnav", __VA_ARGS__)
-
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "libnav", __VA_ARGS__)
-
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO   , "libnav", __VA_ARGS__)
-
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN   , "libnav", __VA_ARGS__)
-
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR  , "libnav", __VA_ARGS__)
 
-
-
 //https://code.tutsplus.com/ko/tutorials/how-to-get-started-with-androids-native-development-kit--cms-27605
-
-
-
-
-
-
-
 
 extern "C" {
 
@@ -57,7 +44,7 @@ typedef struct {
     int N;
 
 
-    int Orbitmode;
+    int orbitMode;
     float radius;
     Point2D objectP;
     float centerAngle;
@@ -118,11 +105,6 @@ void updateRadius(int handle) {
 
 #define PUSHABLE_SIZE_PER_CHANNEL 32
 #define PUSHABLE_SIZE PUSHABLE_SIZE_PER_CHANNEL*2
-
-
-
-
-
 
 
 JNIEXPORT jfloatArray JNICALL
@@ -202,107 +184,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundProvider_bypassSignalProcess(
     LOGI("JNI log bypass  end");
 }
 
-//
-//JNIEXPORT jfloatArray JNICALL
-//Java_me_demetoir_a3dsound_1ndk_SoundProvider_sinalProcesssFFT(
-//        JNIEnv *env,
-//        jobject instance,
-//        jint SOHandle_j) {
-//
-//    SoundObject &object = SOList[SOHandle_j];
-//
-////    LOGI("JNI log angle : %lf,  angle index: %d ",object.angle, getAngleIndex(object.angle));
-//
-//    float distance_weight = (MAX_DISTANCE - object.distance) / MAX_DISTANCE;
-//    int angleIdx = angleToAngleIndex(object.angle);
-//    int index = object.idxHead;
-//
-//    int N = 200 * 2;
-//    int M = 200;
-//    int L = 200;
-//
-//    //delay
-//    for (int i = N - 1; i - L >= 0; i--) {
-//        object.mixedOutput[i * 2] = object.mixedOutput[(i - L) * 2];
-//        object.mixedOutput[i * 2 + 1] = object.mixedOutput[(i - L) * 2 + 1];
-//
-//    }
-//    LOGI("OA delay");
-//
-//    // overlap add
-//    CArray right_hrtf(N);
-//    CArray left_hrtf(N);
-//    for (int i = 0; i < 200; i++) {
-//        right_hrtf[i] = hrtf_database.right[angleIdx][i];
-//        left_hrtf[i] = hrtf_database.left[angleIdx][i];
-//    }
-//    LOGI("OA copy hrtf");
-//
-//    CArray leftSlice = object.input[std::slice(index, L, 1)];
-//    CArray xLeft(N);
-//    for (int i = 0; i < N; i++) {
-//        xLeft[i] = leftSlice[i];
-//    }
-//    LOGI("OA slice input");
-//
-//    fft(right_hrtf);
-//    fft(left_hrtf);
-//    LOGI("OA fft hrtf");
-//
-//    fft(xLeft);
-//    CArray xRight(N);
-//    for (int i = 0; i < N; i++)
-//        xRight[i] = xLeft[i];
-//
-//    LOGI("OA fft input");
-//
-//    for (int i = 0; i < N; i++) {
-//        double real;
-//        double imag;
-//
-//        real = xLeft[i].real() * left_hrtf[i].real() - xLeft[i].imag() * left_hrtf[i].imag();
-//        imag = xLeft[i].real() * left_hrtf[i].real() + xLeft[i].imag() * left_hrtf[i].imag();
-//        xLeft[i].real(real);
-//        xLeft[i].imag(imag);
-//
-//
-//        real = xRight[i].real() * right_hrtf[i].real() - xRight[i].imag() * right_hrtf[i].imag();
-//        imag = xRight[i].real() * right_hrtf[i].real() + xRight[i].imag() * right_hrtf[i].imag();
-//        xRight[i].real(real);
-//        xRight[i].imag(imag);
-//
-////
-////        xLeft[i] *= left_hrtf[i];
-////        xRight[i] *= right_hrtf[i];
-////
-//    }
-//    LOGI("OA multiple");
-//
-//    ifft(xLeft);
-//    ifft(xRight);
-//    LOGI("OA ifft");
-//
-//
-//
-////    mix channel
-//    for (int i = 0; i < N; i++) {
-//        object.mixedOutput[i * 2] += xLeft[i].real() * distance_weight;
-//        object.mixedOutput[i * 2 + 1] += xRight[i].real() * distance_weight;
-//        LOGI("OA mix %f %f", object.mixedOutput[i * 2], object.mixedOutput[i * 2 + 1]);
-//
-//    }
-//    LOGI("OA mix");
-//
-//
-//    object.idxHead = (PUSHABLE_SIZE_PER_CHANNEL + object.idxHead) % object.inputSoundSize;
-//
-//    jfloatArray ret = env->NewFloatArray(PUSHABLE_SIZE);
-//    env->SetFloatArrayRegion(ret, 0, PUSHABLE_SIZE, object.mixedOutput);
-//    LOGI("OA copy res");
-//
-//    return ret;
-//}
-
 
 #define HRTF_CHANNEL_LEFT 0
 #define HRTF_CHANNEL_RIGHT 1
@@ -334,12 +215,10 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_loadHRTF(
 
 
 //TODO 파일 분리 하는방법 알아두기
-int genNewSOHANDLE() {
+int genNewSOHandle() {
 
     return 0;
 }
-
-
 
 
 JNIEXPORT void JNICALL
@@ -351,7 +230,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_initSoundObject(
         jfloat y_j,
         jfloatArray sound_j) {
 
-    SoundObject &unit = SOList[genNewSOHANDLE()];
+    SoundObject &unit = SOList[genNewSOHandle()];
 
     unit.x_size = x_size_j;
     for (int i = 0; i < x_size_j; i++) {
@@ -375,7 +254,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_initSoundObject(
     }
 
 }
-
 
 
 JNIEXPORT void JNICALL
@@ -445,7 +323,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getSODistance(
 
 
 // get set point SO, center, line start, line end
-
 void CPoint2DTojPoint2D(JNIEnv *env, jobject p_j, Point2D p) {
     jclass cls = env->GetObjectClass(p_j);
 
@@ -599,14 +476,13 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getSOCenterAngle(
 }
 
 
-
 JNIEXPORT jint JNICALL
 Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_getOrbitMode(
         JNIEnv *env,
         jobject instance,
         jint SOHandle_j) {
 
-    return SOList[SOHandle_j].Orbitmode;
+    return SOList[SOHandle_j].orbitMode;
 }
 
 JNIEXPORT void JNICALL
@@ -616,7 +492,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_setOrbitMode(
         jint SOHandle_j,
         jint mode_j) {
 
-    SOList[SOHandle_j].Orbitmode = mode_j;
+    SOList[SOHandle_j].orbitMode = mode_j;
 }
 
 

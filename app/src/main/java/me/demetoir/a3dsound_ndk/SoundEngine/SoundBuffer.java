@@ -48,7 +48,7 @@ class SoundBuffer {
         return this.mBuffer.remaining();
     }
 
-    public FloatBuffer getmBuffer() {
+    public FloatBuffer getBuffer() {
         return mBuffer;
     }
 }

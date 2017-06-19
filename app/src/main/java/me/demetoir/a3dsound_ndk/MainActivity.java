@@ -1,6 +1,5 @@
 package me.demetoir.a3dsound_ndk;
 
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -26,15 +25,8 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
+import me.demetoir.a3dsound_ndk.SoundEngine.HRTFDatabase;
+import me.demetoir.a3dsound_ndk.SoundEngine.SoundBank;
 import me.demetoir.a3dsound_ndk.SoundEngine.SoundEngine;
 import me.demetoir.a3dsound_ndk.SoundEngine.SoundObjectView;
 import me.demetoir.a3dsound_ndk.SoundEngine.SoundOrbit;
@@ -42,20 +34,14 @@ import me.demetoir.a3dsound_ndk.util.Point2D;
 
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
-    public static final float DEFAULT_VOLUME = 3.0f;
 
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
     }
 
-
-    private final static int SAMPLING_RATE = 44100;
-    private final static int MAX_ANGLE_INDEX_SIZE = 100;
-    private final static int HTRF_SIZE = 200;
     private final static int MAX_SOHANDLE_SIZE = 10;
     private final static int DEFAULT_SO_HANDLE = 0;
-
 
     private Point2D mHeadCenterPoint;
 
@@ -77,9 +63,6 @@ public class MainActivity extends AppCompatActivity {
     // IMAGE View
     private SoundObjectView mSOView;
 
-    private int mStrLoadedSoundID;
-
-
     public MainActivity() {
         mHeadCenterPoint = new Point2D();
     }
@@ -95,16 +78,15 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
 
-//        TODO delete
-        soundSourceCheck();
-
         // add mSOView to layer
         mSOView = new SoundObjectView(this);
         ((FrameLayout) findViewById(R.id.MainActivityFrameLayout)).addView(mSOView);
 
+
         // load sound
-        mSoundArray = loadMonoSound(R.raw.sound_scissors);
-        mStrLoadedSoundID = R.string.sound_scissors;
+        // TODO 음원 로딩 기능...
+        SoundBank soundBank = new SoundBank(this);
+        mSoundArray = soundBank.loadMonoSound(SoundBank.DEFAULT_SOUND);
 
         // init AudioTrack
         initAudioTrack();
@@ -122,34 +104,6 @@ public class MainActivity extends AppCompatActivity {
         initSettingUi();
     }
 
-    private void initSoundEngine() {
-        mSOHandleList = new int[MAX_SOHANDLE_SIZE];
-        mSoundEngine = new SoundEngine(mAudioTrack);
-        mSoundEngine.loadHRTF_database(
-                loadHRTFdatabase(R.raw.left_hrtf_database),
-                loadHRTFdatabase(R.raw.right_hrtf_database),
-                MAX_ANGLE_INDEX_SIZE);
-
-        mSoundEngine.setSoundObjectView(DEFAULT_SO_HANDLE, mSOView);
-
-        Point2D p = new Point2D(200, 0);
-        mSOHandleList[DEFAULT_SO_HANDLE] = mSoundEngine.makeNewSO(p, mSoundArray);
-        mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, p);
-
-        Point2D centerP = new Point2D();
-        mSoundEngine.setSOCenterPoint(DEFAULT_SO_HANDLE, centerP);
-
-        Point2D startP = new Point2D(200, 0);
-        mSoundEngine.setSOStartPoint(DEFAULT_SO_HANDLE, startP);
-
-        Point2D endP = new Point2D(-200, 0);
-        mSoundEngine.setSOEndPoint(DEFAULT_SO_HANDLE, endP);
-
-        mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_NONE);
-
-        mSoundEngine.setMainActivity(this);
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -157,22 +111,6 @@ public class MainActivity extends AppCompatActivity {
 //        return super.onCreateOptionsMenu(menu);
         return true;
     }
-
-
-    void cleanUPUI() {
-        mSelectSpeedSeekBar.setClickable(false);
-        mSelectSpeedSeekBar.setVisibility(View.GONE);
-
-        mCloseSettingFAB.setClickable(false);
-        mCloseSettingFAB.setVisibility(View.GONE);
-
-        mSelectDirectionSwitch.setClickable(false);
-        mSelectDirectionSwitch.setVisibility(View.GONE);
-
-        mSelectSpeedRandomizeSwitch.setClickable(false);
-        mSelectSpeedRandomizeSwitch.setVisibility(View.GONE);
-    }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -231,6 +169,20 @@ public class MainActivity extends AppCompatActivity {
         mSOView.update();
     }
 
+    void cleanUPUI() {
+        mSelectSpeedSeekBar.setClickable(false);
+        mSelectSpeedSeekBar.setVisibility(View.GONE);
+
+        mCloseSettingFAB.setClickable(false);
+        mCloseSettingFAB.setVisibility(View.GONE);
+
+        mSelectDirectionSwitch.setClickable(false);
+        mSelectDirectionSwitch.setVisibility(View.GONE);
+
+        mSelectSpeedRandomizeSwitch.setClickable(false);
+        mSelectSpeedRandomizeSwitch.setVisibility(View.GONE);
+    }
+
     private void initFABs() {
         mPlayStopFAB = (FloatingActionButton) findViewById(R.id.playStopFAB);
         mPlayStopFAB.setOnTouchListener(mPlayStopFABOnTouchListener);
@@ -278,6 +230,49 @@ public class MainActivity extends AppCompatActivity {
         mSelectDirectionSwitch.setVisibility(View.GONE);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    void initAudioTrack() {
+        int minSize = AudioTrack.getMinBufferSize(SoundBank.SAMPLING_RATE,
+                AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_FLOAT);
+        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                SoundBank.SAMPLING_RATE,
+                AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_FLOAT,
+                minSize,
+                AudioTrack.MODE_STREAM);
+
+        mAudioTrack.setVolume(SoundBank.DEFAULT_VOLUME);
+    }
+
+    private void initSoundEngine() {
+        mSOHandleList = new int[MAX_SOHANDLE_SIZE];
+        mSoundEngine = new SoundEngine(mAudioTrack, this);
+
+        HRTFDatabase hrtfDatabase = new HRTFDatabase(this);
+        mSoundEngine.loadHRTF_database(
+                hrtfDatabase.leftHRTFDatabase(),
+                hrtfDatabase.rightHRTFDatabase(),
+                HRTFDatabase.MAX_ANGLE_INDEX_SIZE);
+
+        mSoundEngine.setSoundObjectView(DEFAULT_SO_HANDLE, mSOView);
+
+        Point2D p = new Point2D(200, 0);
+        mSOHandleList[DEFAULT_SO_HANDLE] = mSoundEngine.makeNewSO(p, mSoundArray);
+        mSoundEngine.setSOPoint(DEFAULT_SO_HANDLE, p);
+
+        Point2D centerP = new Point2D();
+        mSoundEngine.setSOCenterPoint(DEFAULT_SO_HANDLE, centerP);
+
+        Point2D startP = new Point2D(200, 0);
+        mSoundEngine.setSOStartPoint(DEFAULT_SO_HANDLE, startP);
+
+        Point2D endP = new Point2D(-200, 0);
+        mSoundEngine.setSOEndPoint(DEFAULT_SO_HANDLE, endP);
+
+        mSoundEngine.setOrbitMode(DEFAULT_SO_HANDLE, SoundEngine.MODE_NONE);
+    }
+
 
     private Switch.OnCheckedChangeListener mSelectSpeedRandomizeSwitchOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
@@ -292,6 +287,38 @@ public class MainActivity extends AppCompatActivity {
         SoundOrbit soundOrbit = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE);
         soundOrbit.setRandomizeSpeed(isChecked);
     }
+
+
+    private Switch.OnCheckedChangeListener mSelectDirectionSwitchOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            mSelectDirectionSwitchOnCheckedChangeListener_(isChecked);
+        }
+    };
+
+    private void mSelectDirectionSwitchOnCheckedChangeListener_(boolean isChecked) {
+        Log.i(TAG, "onTouch: mSelectDirectionSwitchOnCheckedChangeListener");
+
+        SoundOrbit soundOrbit = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE);
+        if (isChecked) {
+            soundOrbit.setDirection(SoundOrbit.DIRECTION_REVERSE);
+        } else {
+            soundOrbit.setDirection(SoundOrbit.DIRECTION_FORWARD);
+        }
+
+        // TODO 함수화
+        //
+        Point2D startP = new Point2D();
+        mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, startP);
+        Point2D endP = new Point2D();
+        mSoundEngine.getSOEndPoint(DEFAULT_SO_HANDLE, endP);
+
+        Point2D nStartP = new Point2D(endP);
+        Point2D nEndP = new Point2D(startP);
+        mSoundEngine.setSOStartPoint(DEFAULT_SO_HANDLE, nStartP);
+        mSoundEngine.setSOEndPoint(DEFAULT_SO_HANDLE, nEndP);
+    }
+
 
     private SeekBar.OnSeekBarChangeListener mSelectSpeedSeekBarOnSeekBarChangeListener
             = new SeekBar.OnSeekBarChangeListener() {
@@ -317,87 +344,6 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "onStopTrackingTouch: ");
         }
     };
-
-    private Switch.OnCheckedChangeListener mSelectDirectionSwitchOnCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            mSelectDirectionSwitchOnCheckedChangeListener_(isChecked);
-        }
-    };
-
-
-    private void mSelectDirectionSwitchOnCheckedChangeListener_(boolean isChecked) {
-        Log.i(TAG, "onTouch: mSelectDirectionSwitchOnCheckedChangeListener");
-
-        SoundOrbit soundOrbit = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE);
-        if (isChecked) {
-            soundOrbit.setDirection(SoundOrbit.DIRECTION_REVERSE);
-        } else {
-            soundOrbit.setDirection(SoundOrbit.DIRECTION_FORWARD);
-        }
-
-        // TODO 함수화
-        //
-        Point2D startP = new Point2D();
-        mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDLE, startP);
-        Point2D endP = new Point2D();
-        mSoundEngine.getSOEndPoint(DEFAULT_SO_HANDLE, endP);
-
-        Point2D nStartP = new Point2D(endP);
-        Point2D nEndP = new Point2D(startP);
-        mSoundEngine.setSOStartPoint(DEFAULT_SO_HANDLE, nStartP);
-        mSoundEngine.setSOEndPoint(DEFAULT_SO_HANDLE, nEndP);
-    }
-
-    private void soundSourceCheck() {
-        String strbellPath = "/data/data/me.demetoir.a3dsound_ndk/files/raw_devil.snd";
-        try {
-            CopyIfNotExist(R.raw.raw_devil, strbellPath);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    public void CopyIfNotExist(int resID, String target) throws IOException {
-        File targetFile = new File(target);
-        if (!targetFile.exists()) {
-            Log.i(TAG, "CopyIfNotExist: file not exist");
-            CopyFromPackage(resID, targetFile.getName());
-        } else {
-            Log.i(TAG, "CopyIfNotExist: file exist");
-        }
-    }
-
-    public void CopyFromPackage(int resID, String target) throws IOException {
-        FileOutputStream lOutputStream = openFileOutput(target, Context.MODE_PRIVATE);
-        InputStream lInputStream = getResources().openRawResource(resID);
-        int readByte;
-        byte[] buff = new byte[8048];
-
-        while ((readByte = lInputStream.read(buff)) != -1) {
-            lOutputStream.write(buff, 0, readByte);
-        }
-
-        lOutputStream.flush();
-        lOutputStream.close();
-        lInputStream.close();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    void initAudioTrack() {
-        int minSize = AudioTrack.getMinBufferSize(SAMPLING_RATE,
-                AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_FLOAT);
-
-        mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-                SAMPLING_RATE,
-                AudioFormat.CHANNEL_OUT_STEREO,
-                AudioFormat.ENCODING_PCM_FLOAT,
-                minSize,
-                AudioTrack.MODE_STREAM);
-
-        mAudioTrack.setVolume(DEFAULT_VOLUME);
-    }
 
 
     private Button.OnTouchListener mPlayStopFABOnTouchListener = new View.OnTouchListener() {
@@ -494,8 +440,6 @@ public class MainActivity extends AppCompatActivity {
         int orbitMode = mSoundEngine.getOrbitMode(DEFAULT_SO_HANDLE);
         float eX = event.getX();
         float eY = event.getY();
-//        Log.i(TAG, "onTouch: w " + SOView.getWidth() + "  h " + SOView.getHeight());
-//        Log.i(TAG, "onTouch: " + eX + "  " + eY);
 
         // screen point to point
         Point2D newP = new Point2D(eX - mHeadCenterPoint.x, -eY + mHeadCenterPoint.y);
@@ -600,83 +544,5 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return false;
-    }
-
-
-    float[][] loadHRTFdatabase(int resId_HRTFDatabase) {
-        float[][] HRTFdatabase = new float[MAX_ANGLE_INDEX_SIZE][HTRF_SIZE];
-
-        InputStream inputStream = this.getResources().openRawResource(resId_HRTFDatabase);
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-        try {
-            for (int index = 0; index < MAX_ANGLE_INDEX_SIZE; index++) {
-                String line = bufferedReader.readLine();
-                String[] values = line.split("\t");
-                for (int angle = 0; angle < values.length; angle++) {
-                    HRTFdatabase[angle][index] = Float.parseFloat(values[angle]);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "loadHRTFdatabase: ", e);
-        }
-
-        try {
-            bufferedReader.close();
-            inputStreamReader.close();
-            inputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "loadHRTFdatabase: ", e);
-        }
-
-        Log.i(TAG, "loadHRTFdatabase: load end");
-        return HRTFdatabase;
-    }
-
-
-    float[] loadMonoSound(int monoSoundResId) {
-        short[] monoSound;
-        InputStream inputStream = this.getResources().openRawResource(monoSoundResId);
-        DataInputStream dataInputStream = null;
-        ArrayList<Short> shorts = new ArrayList<>();
-        try {
-            dataInputStream = new DataInputStream(inputStream);
-            while (true) {
-                shorts.add(dataInputStream.readShort());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "loadSound: " + e);
-        } finally {
-            monoSound = new short[shorts.size()];
-            int size = shorts.size();
-            for (int i = 0; i < size; i++) {
-                monoSound[i] = shorts.get(i);
-            }
-            Log.i(TAG, "loadSound: sound length : " + Integer.toString(size));
-        }
-
-        try {
-            inputStream.close();
-            dataInputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return shortToFloat(monoSound);
-    }
-
-
-    float[] shortToFloat(short[] shorts) {
-        int size = shorts.length;
-        float[] floats = new float[size];
-        final float factor = 32767;
-        for (int i = 0; i < size; i++) {
-            floats[i] = ((float) shorts[i]) / factor;
-        }
-        return floats;
     }
 }

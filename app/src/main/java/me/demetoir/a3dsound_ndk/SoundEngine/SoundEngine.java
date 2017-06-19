@@ -35,7 +35,7 @@ public class SoundEngine {
     private int[] SPOHandleList;
     private boolean mIsPlaying;
 
-    public SoundEngine(AudioTrack audioTrack) {
+    public SoundEngine(AudioTrack audioTrack, Activity activity) {
         mAudioTrack = audioTrack;
         mSoundBuffer = new SoundBuffer();
 
@@ -48,9 +48,7 @@ public class SoundEngine {
         mConsumer.addSoundProvider(mProvider);
         mSoundOrbit = new SoundOrbit(this, DEFAULT_SO_HANDLE);
         mSoundOrbit.start();
-    }
 
-    public void setMainActivity(Activity activity) {
         mainActivity = (MainActivity) activity;
     }
 
@@ -74,7 +72,6 @@ public class SoundEngine {
         mAudioTrack.play();
         mProvider.startProviding();
         mConsumer.startConsuming();
-//        mSoundOrbit.startRunning();
 
         try {
             mProvider.setPriority(7);
@@ -92,22 +89,12 @@ public class SoundEngine {
             Log.i(TAG, "start: mConsumer started");
         }
 
-//        try {
-//            mSoundOrbit.setPriority(7);
-//            mSoundOrbit.start();
-//        } catch (Exception ignored) {
-//        } finally {
-//            Log.i(TAG, "start: mSoundOrbit started");
-//        }
-
         Log.i(TAG, "start: thread started");
-
     }
 
     public void stop() {
         mProvider.stopProviding();
         mConsumer.stopConsuming();
-//        mSoundOrbit.stopRunning();
         mIsPlaying = false;
     }
 
@@ -127,15 +114,6 @@ public class SoundEngine {
     }
 
 
-    public void setSoundObjectView(int SOhandle, SoundObjectView soundObjectView) {
-        mSoundOrbit.setOrbitView(soundObjectView);
-    }
-
-
-    public void setSOOrbitView(int SOhandle, SoundObjectView view) {
-        mSoundOrbit.setOrbitView(view);
-    }
-
     public void startSOOrbit(int SOHandle) {
         mSoundOrbit.startRunning();
     }
@@ -150,7 +128,6 @@ public class SoundEngine {
     private native int initSoundObject(int x_size_j, float x_j, float y_j, float[] sound_j);
 
     public native void loadSound(int handle_j, float[] sound_j);
-
 
     public native void setSOAngle(int handle_j, float angle_j);
 
@@ -182,7 +159,6 @@ public class SoundEngine {
 
     public native float getSOCenterAngle(int SOHandle_j);
 
-
     public native int getOrbitMode(int SOHandle_j);
 
     public native void setOrbitMode(int SOHandle_j, int mode_j);
@@ -190,6 +166,15 @@ public class SoundEngine {
     public SoundOrbit getSoundOrbit(int SOHandle) {
         return mSoundOrbit;
     }
+
+    public void setSoundObjectView(int SOhandle, SoundObjectView soundObjectView) {
+        mSoundOrbit.setOrbitView(soundObjectView);
+    }
+
+    public void setSOOrbitView(int SOhandle, SoundObjectView view) {
+        mSoundOrbit.setOrbitView(view);
+    }
+
 }
 
 
