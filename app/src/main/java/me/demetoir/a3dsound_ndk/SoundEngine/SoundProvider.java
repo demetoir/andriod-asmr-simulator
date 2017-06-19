@@ -1,14 +1,10 @@
-package me.demetoir.a3dsound_ndk;
+package me.demetoir.a3dsound_ndk.SoundEngine;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import static me.demetoir.a3dsound_ndk.SoundBuffer.PUSHABLE_SIZE;
 
 class SoundProvider extends Thread {
     private final static String TAG = "SoundProvider";
     private final static int THREAD_WAKE_UP_TIME = 100;
-    float[] tempBuffer = new float[PUSHABLE_SIZE];
 
     static {
         System.loadLibrary("native-lib");
@@ -17,18 +13,17 @@ class SoundProvider extends Thread {
     private SoundBuffer mSoundBuffer;
     private int mSOHandle;
     private boolean mIsProviding;
-    ByteBuffer buf;
+    private boolean mIsExitThread;
 
     SoundProvider(SoundBuffer object, int SOHandle) {
         mSoundBuffer = object;
         mSOHandle = SOHandle;
         mIsProviding = false;
-        buf = ByteBuffer.allocateDirect(1024 * 8);
-        buf.order(ByteOrder.LITTLE_ENDIAN);
+        mIsExitThread = false;
     }
 
     private void providerProcess() {
-        while (true) {
+        while (!mIsExitThread) {
             if (!mIsProviding) {
                 try {
                     sleep(THREAD_WAKE_UP_TIME);
@@ -38,25 +33,11 @@ class SoundProvider extends Thread {
                 continue;
             }
 
-//            Log.i(TAG, "providerProcess: getPushableSize = " + mSoundBuffer.getPushableSize());
             if (mSoundBuffer.isPushAble()) {
                 mSoundBuffer.pushBuffer(signalProcess(mSOHandle));
-//                float[] temp = sinalProcesssFFT(mSOHandle);
-//                Log.i(TAG, "providerProcess: temp len = "+temp.length);
-//                mSoundBuffer.pushBuffer(temp);
-
-
-//                bypassSignalProcess(mSOHandle, buf, buf.position());
-//                buf.asFloatBuffer().get(tempBuffer);
-//                mSoundBuffer.pushBuffer(tempBuffer);
                 continue;
             }
 
-//            try {
-//                sleep(0,1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
             synchronized (this) {
                 try {
                     this.wait();
@@ -85,5 +66,4 @@ class SoundProvider extends Thread {
 
     public native void bypassSignalProcess(int SOHandle_j, ByteBuffer buf_j, int buf_start_index_j);
 
-    public native float[] sinalProcesssFFT(int SOHandle_j);
 }

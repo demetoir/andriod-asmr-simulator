@@ -1,4 +1,4 @@
-package me.demetoir.a3dsound_ndk;
+package me.demetoir.a3dsound_ndk.SoundEngine;
 
 import java.nio.FloatBuffer;
 
@@ -6,12 +6,12 @@ import java.nio.FloatBuffer;
 class SoundBuffer {
     private final static String TAG = "SoundBuffer";
 
-    private final static int BUFFER_SIZE = 1024*8 ;
+    private final static int BUFFER_SIZE = 1024 * 8;
     private final static int CHANNEL_SIZE = 2;
     private final static int PUSHABLE_SIZE_PER_CHANNEL = 32;
-    public final static int PUSHABLE_SIZE = PUSHABLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
+    private final static int PUSHABLE_SIZE = PUSHABLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
     private final static int POPABBLE_SIZE_PER_CHANNEL = 128;
-    public final static int POPABLE_SIZE = POPABBLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
+    private final static int POPABLE_SIZE = POPABBLE_SIZE_PER_CHANNEL * CHANNEL_SIZE;
 
     private FloatBuffer mBuffer;
     private float[] mTempBuf;
@@ -29,7 +29,7 @@ class SoundBuffer {
         return this.mBuffer.position() > POPABLE_SIZE;
     }
 
-    public float[] popBuffer() {
+    float[] popBuffer() {
         synchronized (this) {
             mBuffer.flip();
             mBuffer.get(mTempBuf, 0, POPABLE_SIZE);
@@ -38,16 +38,17 @@ class SoundBuffer {
         return mTempBuf;
     }
 
-    public void pushBuffer(float[] floats) {
+    void pushBuffer(float[] floats) {
         synchronized (this) {
             mBuffer.put(floats);
         }
     }
 
-    public int getPushableSize(){
+    public int getPushableSize() {
         return this.mBuffer.remaining();
     }
-    public FloatBuffer getmBuffer(){
+
+    public FloatBuffer getmBuffer() {
         return mBuffer;
     }
 }

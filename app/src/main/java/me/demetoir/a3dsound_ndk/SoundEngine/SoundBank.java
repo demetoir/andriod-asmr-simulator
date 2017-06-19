@@ -1,5 +1,7 @@
-package me.demetoir.a3dsound_ndk;
+package me.demetoir.a3dsound_ndk.SoundEngine;
 
+
+import me.demetoir.a3dsound_ndk.R;
 
 public class SoundBank {
     public final static int SOUND_BIRD = R.raw.sound_bird;

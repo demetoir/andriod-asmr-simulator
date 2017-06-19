@@ -35,6 +35,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+import me.demetoir.a3dsound_ndk.SoundEngine.SoundEngine;
+import me.demetoir.a3dsound_ndk.SoundEngine.SoundObjectView;
+import me.demetoir.a3dsound_ndk.SoundEngine.SoundOrbit;
+import me.demetoir.a3dsound_ndk.util.Point2D;
+
 public class MainActivity extends AppCompatActivity {
     private final static String TAG = "MainActivity";
     public static final float DEFAULT_VOLUME = 3.0f;
@@ -190,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
                 mSelectDirectionSwitch.setVisibility(View.VISIBLE);
                 mSelectDirectionSwitch.setClickable(true);
                 int direction = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE).getDirection();
-                if (direction == soundOrbit.DIRECTION_FORWARD)
+                if (direction == SoundOrbit.DIRECTION_FORWARD)
                     mSelectDirectionSwitch.setChecked(false);
                 else
                     mSelectDirectionSwitch.setChecked(true);
@@ -284,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
     private void mSelectSpeedRandomizeSwitchOnCheckedChangeListener_(boolean isChecked) {
         Log.i(TAG, "onTouch: mSelectSpeedRandomizeSwitchOnCheckedChangeListener_");
 
-        soundOrbit soundOrbit = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE);
+        SoundOrbit soundOrbit = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE);
         soundOrbit.setRandomizeSpeed(isChecked);
     }
 
@@ -294,8 +299,8 @@ public class MainActivity extends AppCompatActivity {
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             Log.i(TAG, "onProgressChanged: ");
             int max = seekBar.getMax();
-            double speed = ((double) progress / (double) max) * soundOrbit.MAX_SPEED
-                    + soundOrbit.MIN_SPEED;
+            double speed = ((double) progress / (double) max) * SoundOrbit.MAX_SPEED
+                    + SoundOrbit.MIN_SPEED;
 
 
             mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE)
@@ -310,7 +315,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             Log.i(TAG, "onStopTrackingTouch: ");
-            ;
         }
     };
 
@@ -325,11 +329,11 @@ public class MainActivity extends AppCompatActivity {
     private void mSelectDirectionSwitchOnCheckedChangeListener_(boolean isChecked) {
         Log.i(TAG, "onTouch: mSelectDirectionSwitchOnCheckedChangeListener");
 
-        soundOrbit soundOrbit = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE);
+        SoundOrbit soundOrbit = mSoundEngine.getSoundOrbit(DEFAULT_SO_HANDLE);
         if (isChecked) {
-            soundOrbit.setDirection(soundOrbit.DIRECTION_REVERSE);
+            soundOrbit.setDirection(SoundOrbit.DIRECTION_REVERSE);
         } else {
-            soundOrbit.setDirection(soundOrbit.DIRECTION_FORWARD);
+            soundOrbit.setDirection(SoundOrbit.DIRECTION_FORWARD);
         }
 
         // TODO 함수화

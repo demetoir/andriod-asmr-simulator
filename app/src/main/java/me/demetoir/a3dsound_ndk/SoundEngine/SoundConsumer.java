@@ -1,4 +1,4 @@
-package me.demetoir.a3dsound_ndk;
+package me.demetoir.a3dsound_ndk.SoundEngine;
 
 import android.media.AudioTrack;
 import android.os.Build;
@@ -9,38 +9,36 @@ class SoundConsumer extends Thread {
     private final static String TAG = "SoundConsumer";
 
     private final static int THREAD_WAKE_UP_TIME = 100;
+
     static {
         System.loadLibrary("native-lib");
     }
 
-    SoundBuffer mSoundBuffer;
-    AudioTrack mAudioTrack;
-    boolean mIsConsuming;
-    SoundProvider mSoundProvider;
+    private SoundBuffer mSoundBuffer;
+    private AudioTrack mAudioTrack;
+    private boolean mIsConsuming;
+    private boolean mIsExitThread;
+    private SoundProvider mSoundProvider;
 
-    SoundConsumer(SoundBuffer mSoundBuffer, AudioTrack audioTrack) {
-        this.mSoundBuffer = mSoundBuffer;
-        this.mAudioTrack = audioTrack;
-        this.mIsConsuming = false;
-    }
-
-    void addSoundProvider(SoundProvider soundProvider){
-        mSoundProvider = soundProvider;
-    }
-
-    void startConsuming() {
-        mIsConsuming = true;
-    }
-
-    void stopConsuming() {
+    SoundConsumer(SoundBuffer soundBuffer, AudioTrack audioTrack) {
+        mSoundBuffer = soundBuffer;
+        mAudioTrack = audioTrack;
         mIsConsuming = false;
+        mIsExitThread = false;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void run() {
+        super.run();
+        soundProcess();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void soundProcess() {
         float[] outputSound;
-        while (true) {
-            if (!mIsConsuming){
+        while (!mIsExitThread) {
+            if (!mIsConsuming) {
                 try {
                     sleep(THREAD_WAKE_UP_TIME);
                 } catch (InterruptedException e) {
@@ -65,10 +63,15 @@ class SoundConsumer extends Thread {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    @Override
-    public void run() {
-        super.run();
-        soundProcess();
+    void addSoundProvider(SoundProvider soundProvider) {
+        mSoundProvider = soundProvider;
+    }
+
+    void startConsuming() {
+        mIsConsuming = true;
+    }
+
+    void stopConsuming() {
+        mIsConsuming = false;
     }
 }

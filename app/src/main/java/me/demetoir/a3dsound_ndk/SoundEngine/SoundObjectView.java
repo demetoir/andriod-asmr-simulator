@@ -1,4 +1,4 @@
-package me.demetoir.a3dsound_ndk;
+package me.demetoir.a3dsound_ndk.SoundEngine;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,10 +8,12 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
-class SoundObjectView extends View {
+import me.demetoir.a3dsound_ndk.R;
+import me.demetoir.a3dsound_ndk.util.Point2D;
+
+public class SoundObjectView extends View {
     private final static String TAG = "SoundObjectView";
 
     private final static int DEFAULT_SO_HANDEL = 0;
@@ -189,19 +191,7 @@ class SoundObjectView extends View {
     }
 
 
-    private void rectLog(Rect rect) {
-        float a = rect.left;
-        float b = rect.top;
-        float c = rect.right;
-        float d = rect.bottom;
-        String str = String.format("%f %f %f %f", a, b, c, d);
-        Log.i(TAG, "rectLog: " + str);
-    }
 
-    private void pointLog(Point2D p) {
-        String str = String.format("%f %f", p.x, p.y);
-        Log.i(TAG, "pointLog: point " + str);
-    }
 
     public int pointingObject(Point2D p) {
 //        pointLog(p);
@@ -226,21 +216,15 @@ class SoundObjectView extends View {
 
         mSoundEngine.getSOPoint(mSOHandle, mSOPoint);
         setRectByPoint(mSoundObjectRect, mSOPoint, w, h);
-//        Log.i(TAG, "update: sop" + mSOPoint.x + " " + mSOPoint.y);
 
         mOrbitMode = mSoundEngine.getOrbitMode(DEFAULT_SO_HANDEL);
         if (mOrbitMode == MODE_CIRCLE) {
             mSoundEngine.getSOCenterPoint(DEFAULT_SO_HANDEL, mCenterP);
 
-//            pointLog(mCenterP);
-
             setRectByPoint(mCenterPointTouchRect,
                     mCenterP,
                     (int) CIRCLE_TOUCH_RADIUS,
                     (int) CIRCLE_TOUCH_RADIUS);
-
-//            rectLog(mCenterPointTouchRect);
-
         } else if (mOrbitMode == MODE_LINE) {
             mSoundEngine.getSOStartPoint(DEFAULT_SO_HANDEL, mLineStartP);
             setRectByPoint(mStartPointTouchRect,
@@ -254,8 +238,6 @@ class SoundObjectView extends View {
                     (int) CIRCLE_TOUCH_RADIUS,
                     (int) CIRCLE_TOUCH_RADIUS);
         }
-
-//        Log.i(TAG, "update: x  " + x + "  " + y);
 
         invalidate();
     }

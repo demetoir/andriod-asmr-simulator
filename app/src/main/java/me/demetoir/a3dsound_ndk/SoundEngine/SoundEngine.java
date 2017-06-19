@@ -1,11 +1,14 @@
-package me.demetoir.a3dsound_ndk;
+package me.demetoir.a3dsound_ndk.SoundEngine;
 
 import android.app.Activity;
 import android.media.AudioTrack;
 import android.util.Log;
 
+import me.demetoir.a3dsound_ndk.MainActivity;
+import me.demetoir.a3dsound_ndk.util.Point2D;
 
-class SoundEngine {
+
+public class SoundEngine {
     private final static String TAG = "SoundEngine";
 
     // Used to load the 'native-lib' library on application startup.
@@ -25,14 +28,14 @@ class SoundEngine {
     private SoundConsumer mConsumer;
     private SoundBuffer mSoundBuffer;
     private AudioTrack mAudioTrack;
-    private soundOrbit mSoundOrbit;
+    private SoundOrbit mSoundOrbit;
 
     private MainActivity mainActivity;
 
     private int[] SPOHandleList;
     private boolean mIsPlaying;
 
-    SoundEngine(AudioTrack audioTrack) {
+    public SoundEngine(AudioTrack audioTrack) {
         mAudioTrack = audioTrack;
         mSoundBuffer = new SoundBuffer();
 
@@ -43,28 +46,28 @@ class SoundEngine {
         mIsPlaying = false;
 
         mConsumer.addSoundProvider(mProvider);
-        mSoundOrbit = new soundOrbit(this, DEFAULT_SO_HANDLE);
+        mSoundOrbit = new SoundOrbit(this, DEFAULT_SO_HANDLE);
         mSoundOrbit.start();
     }
 
-    void setMainActivity(Activity activity){
+    public void setMainActivity(Activity activity) {
         mainActivity = (MainActivity) activity;
     }
 
-    Activity getActivity(){
+    Activity getActivity() {
         return mainActivity;
     }
 
-    void loadHRTF_database(float[][] rightHRTF_database,
-                           float[][] leftHRTF_database,
-                           int angleIndexSize) {
+    public void loadHRTF_database(float[][] rightHRTF_database,
+                                  float[][] leftHRTF_database,
+                                  int angleIndexSize) {
         for (int angle = 0; angle < angleIndexSize; angle++) {
             loadHRTF(rightHRTF_database[angle], angle, 0);
             loadHRTF(leftHRTF_database[angle], angle, 1);
         }
     }
 
-    void start() {
+    public void start() {
         if (mIsPlaying) return;
         mIsPlaying = true;
 
@@ -101,7 +104,7 @@ class SoundEngine {
 
     }
 
-    void stop() {
+    public void stop() {
         mProvider.stopProviding();
         mConsumer.stopConsuming();
 //        mSoundOrbit.stopRunning();
@@ -112,7 +115,7 @@ class SoundEngine {
         return mIsPlaying;
     }
 
-    int makeNewSO(Point2D SOPoint, float[] soundArray) {
+    public int makeNewSO(Point2D SOPoint, float[] soundArray) {
         int SOHandle;
         int x_size_j = 1000;
         SOHandle = initSoundObject(x_size_j,
@@ -124,13 +127,12 @@ class SoundEngine {
     }
 
 
-
-    void setSoundObjectView(int SOhandle, SoundObjectView soundObjectView) {
+    public void setSoundObjectView(int SOhandle, SoundObjectView soundObjectView) {
         mSoundOrbit.setOrbitView(soundObjectView);
     }
 
 
-    void setSOOrbitView(int SOhandle, SoundObjectView view) {
+    public void setSOOrbitView(int SOhandle, SoundObjectView view) {
         mSoundOrbit.setOrbitView(view);
     }
 
@@ -143,12 +145,11 @@ class SoundEngine {
     }
 
 
-
     private native void loadHRTF(float[] HRTF_database_j, int angleIndex_j, int channel);
 
     private native int initSoundObject(int x_size_j, float x_j, float y_j, float[] sound_j);
 
-    public native int loadSound(int handle_j, float[] sound_j);
+    public native void loadSound(int handle_j, float[] sound_j);
 
 
     public native void setSOAngle(int handle_j, float angle_j);
@@ -186,7 +187,9 @@ class SoundEngine {
 
     public native void setOrbitMode(int SOHandle_j, int mode_j);
 
-    public soundOrbit getSoundOrbit(int SOHandle){
+    public SoundOrbit getSoundOrbit(int SOHandle) {
         return mSoundOrbit;
     }
 }
+
+
