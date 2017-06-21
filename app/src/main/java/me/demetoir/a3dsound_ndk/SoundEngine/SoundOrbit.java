@@ -21,7 +21,7 @@ public class SoundOrbit extends Thread {
     public final static double MAX_SPEED = DEFAULT_SPEED * 3;
     public final static double MIN_SPEED = 0;
 
-    public final static int RANDOM_INTERVAL_MAX_CNT = FRAME_RATE * 3;
+    private final static int RANDOM_INTERVAL_MAX_CNT = FRAME_RATE * 3;
     public final static int RANDOM_MIN = -300;
     public final static int RANDOM_MAX = 300;
 

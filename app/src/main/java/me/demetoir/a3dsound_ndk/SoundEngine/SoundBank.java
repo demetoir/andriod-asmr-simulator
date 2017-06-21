@@ -21,16 +21,16 @@ public class SoundBank {
     public final static int DEFAULT_SAMPLING_RATE = 44100;
     public final static float DEFAULT_VOLUME = 3.0f;
 
-    public final static int SOUND_GLASS_BOTTLE = R.raw.sound_glass_bottle;
-    public final static int SOUND_HAND = R.raw.sound_hand;
-    public final static int sound_latex_glove = R.raw.sound_latex_glove;
-    public final static int SOUND_NOTE_BOOK_TYPING = R.raw.sound_note_book_typing;
-    public final static int SOUND_SCISSORS = R.raw.sound_scissors;
-    public final static int SOUND_WATER_BOTTLE = R.raw.sound_water_bottle;
-    public final static int SOUND_WOOD_BLOCK = R.raw.sound_wood_block;
-    public final static int SOUND_PAPER = R.raw.sound_paper;
+    private final static int SOUND_GLASS_BOTTLE = R.raw.sound_glass_bottle;
+    private final static int SOUND_HAND = R.raw.sound_hand;
+    private final static int sound_latex_glove = R.raw.sound_latex_glove;
+    private final static int SOUND_NOTE_BOOK_TYPING = R.raw.sound_note_book_typing;
+    private final static int SOUND_SCISSORS = R.raw.sound_scissors;
+    private final static int SOUND_WATER_BOTTLE = R.raw.sound_water_bottle;
+    private final static int SOUND_WOOD_BLOCK = R.raw.sound_wood_block;
+    private final static int SOUND_PAPER = R.raw.sound_paper;
 
-    public final static int SOUND_BANK_SIZE = 8;
+    private final static int SOUND_BANK_SIZE = 8;
     public final static String[] soundBankString = new String[SOUND_BANK_SIZE];
 
     public final static int DEFAULT_SOUND = SOUND_SCISSORS;
@@ -73,7 +73,7 @@ public class SoundBank {
         return Util.shortToFloat(monoSound);
     }
 
-    public int[] getSoundResList() {
+    private int[] getSoundResList() {
         int[] list = new int[SOUND_BANK_SIZE];
         list[0] = SOUND_PAPER;
         list[1] = SOUND_GLASS_BOTTLE;
@@ -86,7 +86,7 @@ public class SoundBank {
         return list;
     }
 
-    public int[] getSoundStrIdList() {
+    private int[] getSoundStrIdList() {
         int[] list = new int[SOUND_BANK_SIZE];
         list[0] = R.string.sound_paper;
         list[1] = R.string.sound_glass_bottle;

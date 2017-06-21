@@ -2,8 +2,8 @@
     <string name="app_name">3디소리</string>
 
     <!--button text-->
-    <string name="moveCounterClockWiseButtonText">ccw turn</string>
-    <string name="moveClockWisebuttonText">cw turn</string>
+    <!--<string name="moveCounterClockWiseButtonText">ccw turn</string>-->
+    <!--<string name="moveClockWisebuttonText">cw turn</string>-->
     <string name="playButtonText">play</string>
     <string name="stopButtonText">stop</string>
     <string name="distance_increaseBtnText">distance
@@ -14,28 +14,28 @@
     <!--format-->
     <string name="textAngleFormat">angle : %.1f</string>
     <string name="textDistanceFormat">distance : %.1f</string>
-    <string name="textXcorFormat">X : %.2f</string>
-    <string name="textYcorFormat">Y : %.1f</string>
+    <string name="textXCorFormat">X : %.2f</string>
+    <string name="textYCorFormat">Y : %.1f</string>
 
 
     <!--sound bank string-->
     <string name="sound_bird">새소리</string>
-    <string name="sound_glass_bottle">유리병</string>
-    <string name="sound_hand">마른 손바닥 소리</string>
-    <string name="sound_latex_glove">라텍스 장갑</string>
+    <string name="sound_glass_bottle">유리병 두드리기</string>
+    <string name="sound_hand">마른 손바닥 문지르기</string>
+    <string name="sound_latex_glove">라텍스 장갑 문지르기</string>
     <string name="sound_note_book_typing">노트북 타이핑</string>
     <string name="sound_scissors">가위 소리</string>
-    <string name="sound_paper">얇은 종이</string>
-    <string name="sound_wood_block">나무 토막 소리</string>
-    <string name="sound_water_bottle">물병 소리</string>
+    <string name="sound_paper">얇은 종이 부스럭 거리기</string>
+    <string name="sound_wood_block">나무 토막 두두릐기</string>
+    <string name="sound_water_bottle">물병 두두리기</string>
 
-
+    <!--menu ui-->
     <string name="menu_select_sound">소리 선택</string>
     <string name="menu_set_speed">속도 설정</string>
     <string name="menu_set_direction">방향 설정</string>
     <string name="switch_direction_forward">정방향  </string>
     <string name="switch_direction_reverse">역방향  </string>
-    <string name="switch_text">역방향</string>
+    <string name="switch_text">역방향 </string>
     <string name="switch_Sound_Object_Speed_Randomize">속도 랜덤화</string>
     <string name="menu_set_orbit">궤도 변경</string>
 

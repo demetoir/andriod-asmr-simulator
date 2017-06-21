@@ -29,7 +29,7 @@ class SoundBuffer {
         return this.mBuffer.position() > POPABLE_SIZE;
     }
 
-    float[] popBuffer() {
+    float[] pop() {
         synchronized (this) {
             mBuffer.flip();
             mBuffer.get(mTempBuf, 0, POPABLE_SIZE);
@@ -38,7 +38,7 @@ class SoundBuffer {
         return mTempBuf;
     }
 
-    void pushBuffer(float[] floats) {
+    void push(float[] floats) {
         synchronized (this) {
             mBuffer.put(floats);
         }

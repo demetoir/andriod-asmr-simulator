@@ -96,7 +96,6 @@ public class SoundObjectView extends View {
         mCenterPointTouchRect = new Rect(0, 0, 0, 0);
         mEndPointTouchRect = new Rect(0, 0, 0, 0);
         mStartPointTouchRect = new Rect(0, 0, 0, 0);
-
     }
 
 
@@ -117,7 +116,7 @@ public class SoundObjectView extends View {
         this.getMeasuredWidth();
 
         // draw orbit
-        switch (mOrbitMode){
+        switch (mOrbitMode) {
             case MODE_CIRCLE:
                 drawCircleOrbit(canvas);
                 break;
@@ -142,10 +141,9 @@ public class SoundObjectView extends View {
 
     private void drawRandomOrbit(Canvas canvas) {
         int internalMode = mSoundEngine.getSoundOrbit(mSOHandle).getInternalOrbitMode();
-        if (internalMode == MODE_CIRCLE){
+        if (internalMode == MODE_CIRCLE) {
             drawCircleOrbit(canvas);
-        }
-        else if(internalMode == MODE_LINE){
+        } else if (internalMode == MODE_LINE) {
             drawLineOrbit(canvas);
         }
     }
@@ -189,8 +187,6 @@ public class SoundObjectView extends View {
                 CENTER_CIRCLE_RADIUS,
                 mCenterPointPaint);
     }
-
-
 
 
     public int pointingObject(Point2D p) {

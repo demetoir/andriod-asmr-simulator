@@ -3,7 +3,6 @@ package me.demetoir.a3dsound_ndk.SoundEngine;
 import android.app.Activity;
 import android.media.AudioTrack;
 import android.util.Log;
-import android.widget.Toast;
 
 import me.demetoir.a3dsound_ndk.MainActivity;
 import me.demetoir.a3dsound_ndk.util.Point2D;
@@ -72,8 +71,8 @@ public class SoundEngine {
 
     public void start() {
         //wait for loadingSound
-        while(isLoadingSound){
-            Log.i(TAG, "start: isLoadingSound "+ isLoadingSound);
+        while (isLoadingSound) {
+            Log.i(TAG, "start: isLoadingSound " + isLoadingSound);
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
@@ -173,8 +172,6 @@ public class SoundEngine {
         }
 
         private void changeSound() {
-
-            // TODO test
             Log.i(TAG, "changeSound: start");
             isLoadingSound = true;
 
@@ -264,7 +261,7 @@ public class SoundEngine {
         mSoundOrbit.setOrbitView(view);
     }
 
-    public SoundBank getSoundBank() {
+    private SoundBank getSoundBank() {
         return mSoundBank;
     }
 

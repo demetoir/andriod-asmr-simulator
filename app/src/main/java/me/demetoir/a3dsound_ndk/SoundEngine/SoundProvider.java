@@ -38,7 +38,7 @@ class SoundProvider extends Thread {
 
             if (mSoundBuffer.isPushAble()) {
                 isRunning = true;
-                mSoundBuffer.pushBuffer(signalProcess(mSOHandle));
+                mSoundBuffer.push(signalProcess(mSOHandle));
 //                Log.i(TAG, "providerProcess: ffff");
                 continue;
             }

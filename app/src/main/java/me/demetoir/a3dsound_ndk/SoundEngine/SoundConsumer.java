@@ -55,7 +55,7 @@ class SoundConsumer extends Thread {
             }
 
             isRunning = true;
-            outputSound = mSoundBuffer.popBuffer();
+            outputSound = mSoundBuffer.pop();
             mAudioTrack.write(
                     outputSound,
                     0,

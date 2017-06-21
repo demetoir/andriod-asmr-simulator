@@ -12,12 +12,7 @@
 
 //https://code.tutsplus.com/ko/tutorials/how-to-get-started-with-androids-native-development-kit--cms-27605
 
-
-
-
-
 extern "C" {
-
 //define function here
 #define SO_ARRAY_SIZE 3
 #define DELAY_BUFFER_SIZE 1024
@@ -224,7 +219,6 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundEngine_loadHRTF(
 
 //TODO 파일 분리 하는방법 알아두기
 int genNewSOHandle() {
-
     return 0;
 }
 
