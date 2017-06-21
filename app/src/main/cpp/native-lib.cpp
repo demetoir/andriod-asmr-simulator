@@ -64,11 +64,6 @@ typedef struct {
 } HRTF_DATABASE;
 HRTF_DATABASE hrtf_database;
 
-int angleToAngleIndex(double angle) {
-    if (angle < 0) angle = -angle;
-
-    return (int) ((angle / 180.0) * HRTF_ANGLE_INDEX_SIZE);
-}
 
 #define MAX_DISTANCE 500
 void updateDistance(int handle) {
@@ -102,10 +97,17 @@ void updateRadius(int handle) {
     SOList[handle].radius = (float) sqrt(dx * dx + dy * dy);
 }
 
+int angleToAngleIndex(double angle) {
+    if (angle < 0)
+        angle = -angle;
+
+    return (int) ((angle / 180.0) * HRTF_ANGLE_INDEX_SIZE);
+}
+
+
 #define alpha 0.003
 float getDistanceWeight(float distance) {
     return (float) (1 / ((alpha * distance + 1) * (alpha * distance + 1)));
-//    return (MAX_DISTANCE - distance) / MAX_DISTANCE;
 }
 
 #define PUSHABLE_SIZE_PER_CHANNEL 32

@@ -477,7 +477,8 @@ public class MainActivity extends AppCompatActivity {
         } else if (action == MotionEvent.ACTION_MOVE && SOView.IsTouching()) {
             int object = SOView.getTouchingObject();
 
-            if (object == SoundObjectView.TOUCHING_SOUND_OBJECT) {
+            if (object == SoundObjectView.TOUCHING_SOUND_OBJECT
+                    &&  orbitMode != SoundEngine.MODE_RANDOM) {
                 Point2D oldP = new Point2D();
                 mSoundEngine.getSOPoint(SoundEngine.DEFAULT_SO_HANDLE, oldP);
 

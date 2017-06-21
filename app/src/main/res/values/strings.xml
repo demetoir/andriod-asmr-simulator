@@ -17,7 +17,6 @@
     <string name="textXCorFormat">X : %.2f</string>
     <string name="textYCorFormat">Y : %.1f</string>
 
-
     <!--sound bank string-->
     <string name="sound_bird">새소리</string>
     <string name="sound_glass_bottle">유리병 두드리기</string>
@@ -26,7 +25,7 @@
     <string name="sound_note_book_typing">노트북 타이핑</string>
     <string name="sound_scissors">가위 소리</string>
     <string name="sound_paper">얇은 종이 부스럭 거리기</string>
-    <string name="sound_wood_block">나무 토막 두두릐기</string>
+    <string name="sound_wood_block">나무 토막 두두리기</string>
     <string name="sound_water_bottle">물병 두두리기</string>
 
     <!--menu ui-->
@@ -38,6 +37,5 @@
     <string name="switch_text">역방향 </string>
     <string name="switch_Sound_Object_Speed_Randomize">속도 랜덤화</string>
     <string name="menu_set_orbit">궤도 변경</string>
-
 
 </resources>
