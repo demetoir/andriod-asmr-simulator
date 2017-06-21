@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import me.demetoir.a3dsound_ndk.MainActivity;
+import me.demetoir.a3dsound_ndk.Activity.MainActivity;
 import me.demetoir.a3dsound_ndk.R;
 
 import static android.content.ContentValues.TAG;

@@ -1,4 +1,4 @@
-package me.demetoir.a3dsound_ndk;
+package me.demetoir.a3dsound_ndk.Activity;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -26,13 +26,14 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import me.demetoir.a3dsound_ndk.R;
 import me.demetoir.a3dsound_ndk.SoundEngine.HRTFDatabase;
 import me.demetoir.a3dsound_ndk.SoundEngine.SoundBank;
 import me.demetoir.a3dsound_ndk.SoundEngine.SoundEngine;
 import me.demetoir.a3dsound_ndk.SoundEngine.SoundObjectView;
 import me.demetoir.a3dsound_ndk.SoundEngine.SoundOrbit;
-import me.demetoir.a3dsound_ndk.util.Point2D;
-import me.demetoir.a3dsound_ndk.util.Util;
+import me.demetoir.a3dsound_ndk.SoundEngine.Point2D;
+import me.demetoir.a3dsound_ndk.Util.Util;
 
 import static android.widget.Toast.makeText;
 

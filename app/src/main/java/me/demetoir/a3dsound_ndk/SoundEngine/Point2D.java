@@ -1,4 +1,4 @@
-package me.demetoir.a3dsound_ndk.util;
+package me.demetoir.a3dsound_ndk.SoundEngine;
 
 import java.util.Random;
 

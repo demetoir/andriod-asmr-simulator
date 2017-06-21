@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="me.demetoir.a3dsound_ndk.SelectSoundActivity">
+    tools:context="me.demetoir.a3dsound_ndk.Activity.SelectSoundActivity">
 
     <ListView
         android:id="@+id/sound_list_view"

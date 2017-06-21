@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import me.demetoir.a3dsound_ndk.R;
-import me.demetoir.a3dsound_ndk.util.Util;
+import me.demetoir.a3dsound_ndk.Util.Util;
 
 import static android.content.ContentValues.TAG;
 

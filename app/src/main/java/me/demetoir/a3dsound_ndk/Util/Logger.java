@@ -1,7 +1,9 @@
-package me.demetoir.a3dsound_ndk.util;
+package me.demetoir.a3dsound_ndk.Util;
 
 import android.graphics.Rect;
 import android.util.Log;
+
+import me.demetoir.a3dsound_ndk.SoundEngine.Point2D;
 
 
 public class Logger {

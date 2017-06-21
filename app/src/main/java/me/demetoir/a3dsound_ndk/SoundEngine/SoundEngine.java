@@ -4,8 +4,7 @@ import android.app.Activity;
 import android.media.AudioTrack;
 import android.util.Log;
 
-import me.demetoir.a3dsound_ndk.MainActivity;
-import me.demetoir.a3dsound_ndk.util.Point2D;
+import me.demetoir.a3dsound_ndk.Activity.MainActivity;
 
 
 public class SoundEngine {

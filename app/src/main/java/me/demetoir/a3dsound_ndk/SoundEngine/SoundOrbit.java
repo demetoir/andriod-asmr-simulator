@@ -5,9 +5,8 @@ import android.widget.SeekBar;
 
 import java.util.Random;
 
-import me.demetoir.a3dsound_ndk.MainActivity;
+import me.demetoir.a3dsound_ndk.Activity.MainActivity;
 import me.demetoir.a3dsound_ndk.R;
-import me.demetoir.a3dsound_ndk.util.Point2D;
 
 public class SoundOrbit extends Thread {
     private final static String TAG = "soundOrbit ";

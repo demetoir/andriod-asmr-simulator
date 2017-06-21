@@ -1,4 +1,4 @@
-package me.demetoir.a3dsound_ndk.util;
+package me.demetoir.a3dsound_ndk.Util;
 
 /**
  * Created by yujun on 2017-05-09.

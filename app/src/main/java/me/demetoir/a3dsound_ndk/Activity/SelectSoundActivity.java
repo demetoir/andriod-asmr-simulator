@@ -1,4 +1,4 @@
-package me.demetoir.a3dsound_ndk;
+package me.demetoir.a3dsound_ndk.Activity;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import me.demetoir.a3dsound_ndk.R;
 import me.demetoir.a3dsound_ndk.SoundEngine.SoundBank;
 
 public class SelectSoundActivity extends AppCompatActivity {

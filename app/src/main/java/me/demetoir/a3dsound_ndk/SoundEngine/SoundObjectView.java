@@ -11,7 +11,6 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import me.demetoir.a3dsound_ndk.R;
-import me.demetoir.a3dsound_ndk.util.Point2D;
 
 public class SoundObjectView extends View {
     private final static String TAG = "SoundObjectView";
