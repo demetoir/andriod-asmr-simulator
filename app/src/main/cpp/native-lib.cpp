@@ -107,11 +107,15 @@ void updateRadius(int handle) {
     SOList[handle].radius = (float) sqrt(dx * dx + dy * dy);
 }
 
+#define alpha 0.003
+float getDistanceWeight(float distance) {
+    return (float) (1 / ((alpha * distance + 1) * (alpha * distance + 1)));
+//    return (MAX_DISTANCE - distance) / MAX_DISTANCE;
+}
+
 #define PUSHABLE_SIZE_PER_CHANNEL 32
 #define PUSHABLE_SIZE PUSHABLE_SIZE_PER_CHANNEL*2
 JNIEXPORT jfloatArray JNICALL
-
-
 Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundProvider_signalProcess(
         JNIEnv *env,
         jobject, /* this */
@@ -120,7 +124,7 @@ Java_me_demetoir_a3dsound_1ndk_SoundEngine_SoundProvider_signalProcess(
 
 //    LOGI("JNI log angle : %lf,  angle index: %d ",object.angle, angleToAngleIndex(object.angle));
 
-    float distance_weight = (MAX_DISTANCE - object.distance) / MAX_DISTANCE;
+    float distance_weight = getDistanceWeight(object.distance);
     int angleIdx = angleToAngleIndex(object.angle);
     float leftOut = 0;
     float rightOut = 0;

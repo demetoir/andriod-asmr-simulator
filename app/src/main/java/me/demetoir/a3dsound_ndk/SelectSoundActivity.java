@@ -13,6 +13,15 @@ import me.demetoir.a3dsound_ndk.SoundEngine.SoundBank;
 
 public class SelectSoundActivity extends AppCompatActivity {
     @Override
+    public void onBackPressed() {
+        Intent intent = new Intent();
+        intent.putExtra("res", -1);
+        setResult(1, intent);
+        finish();
+//        super.onBackPressed();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_sound);
@@ -36,7 +45,6 @@ public class SelectSoundActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 intent.putExtra("res", position);
                 setResult(1, intent);
-
                 finish();
             }
         });

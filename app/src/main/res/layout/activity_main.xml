@@ -63,8 +63,5 @@
             android:layout_height="wrap_content"
             android:text="@string/switch_Sound_Object_Speed_Randomize" />
 
-
     </RelativeLayout>
-
-
 </FrameLayout>

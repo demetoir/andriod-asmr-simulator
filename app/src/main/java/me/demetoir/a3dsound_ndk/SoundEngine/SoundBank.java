@@ -21,7 +21,6 @@ public class SoundBank {
     public final static int DEFAULT_SAMPLING_RATE = 44100;
     public final static float DEFAULT_VOLUME = 3.0f;
 
-    public final static int SOUND_BIRD = R.raw.sound_bird;
     public final static int SOUND_GLASS_BOTTLE = R.raw.sound_glass_bottle;
     public final static int SOUND_HAND = R.raw.sound_hand;
     public final static int sound_latex_glove = R.raw.sound_latex_glove;
@@ -31,7 +30,7 @@ public class SoundBank {
     public final static int SOUND_WOOD_BLOCK = R.raw.sound_wood_block;
     public final static int SOUND_PAPER = R.raw.sound_paper;
 
-    public final static int SOUND_BANK_SIZE = 9;
+    public final static int SOUND_BANK_SIZE = 8;
     public final static String[] soundBankString = new String[SOUND_BANK_SIZE];
 
     public final static int DEFAULT_SOUND = SOUND_SCISSORS;
@@ -76,7 +75,7 @@ public class SoundBank {
 
     public int[] getSoundResList() {
         int[] list = new int[SOUND_BANK_SIZE];
-        list[0] = SOUND_BIRD;
+        list[0] = SOUND_PAPER;
         list[1] = SOUND_GLASS_BOTTLE;
         list[2] = SOUND_HAND;
         list[3] = sound_latex_glove;
@@ -84,13 +83,12 @@ public class SoundBank {
         list[5] = SOUND_SCISSORS;
         list[6] = SOUND_WATER_BOTTLE;
         list[7] = SOUND_WOOD_BLOCK;
-        list[8] = SOUND_PAPER;
         return list;
     }
 
     public int[] getSoundStrIdList() {
         int[] list = new int[SOUND_BANK_SIZE];
-        list[0] = R.string.sound_bird;
+        list[0] = R.string.sound_paper;
         list[1] = R.string.sound_glass_bottle;
         list[2] = R.string.sound_hand;
         list[3] = R.string.sound_latex_glove;
@@ -98,7 +96,6 @@ public class SoundBank {
         list[5] = R.string.sound_scissors;
         list[6] = R.string.sound_water_bottle;
         list[7] = R.string.sound_wood_block;
-        list[8] = R.string.sound_paper;
         return list;
     }
 

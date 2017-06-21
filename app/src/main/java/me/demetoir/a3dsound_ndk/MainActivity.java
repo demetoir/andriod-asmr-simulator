@@ -65,14 +65,22 @@ public class MainActivity extends AppCompatActivity {
     // IMAGE View
     private SoundObjectView mSOView;
 
+    private boolean isCreated;
+
+
     public MainActivity() {
         mHeadCenterPoint = new Point2D();
+        isCreated = false;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (isCreated) return;
+        isCreated = false;
+
         //상태표시줄 제거
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -117,17 +125,19 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Toast.makeText(this, "loading sound", Toast.LENGTH_SHORT).show();
-
         Log.i(TAG, "onActivityResult: " + requestCode);
         int position = data.getIntExtra("res", -1);
         Log.i(TAG, "onActivityResult: position " + position);
 
-        SoundBank soundBank = new SoundBank(this);
-        int soundResId = soundBank.getSoundResId(position);
-        mSoundEngine.changeSound(SoundEngine.DEFAULT_SO_HANDLE, soundResId);
+        if (position != -1) {
+            Toast.makeText(this, "loading sound", Toast.LENGTH_SHORT).show();
 
-        Log.i(TAG, "onActivityResult: loading sound");
+            SoundBank soundBank = new SoundBank(this);
+            int soundResId = soundBank.getSoundResId(position);
+            mSoundEngine.changeSound(SoundEngine.DEFAULT_SO_HANDLE, soundResId);
+
+            Log.i(TAG, "onActivityResult: loading sound");
+        }
     }
 
     @Override
@@ -187,10 +197,10 @@ public class MainActivity extends AppCompatActivity {
         int parentHeight = parentLayout.getHeight();
 
         headImageView.setX(parentWidth / 2 - width / 2);
-        headImageView.setY(parentHeight / 2 - height / 2);
+        headImageView.setY(parentHeight / 2 - height / 2 - 55);
 
         mHeadCenterPoint.x = parentWidth / 2;
-        mHeadCenterPoint.y = parentHeight / 2;
+        mHeadCenterPoint.y = parentHeight / 2 - 55;
 
         mSOView.setScreenCenterPoint(mHeadCenterPoint);
 
@@ -547,6 +557,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return false;
+    }
+
+    @Override
+    public void onBackPressed() {
+        mSoundEngine.stop();
+        super.onBackPressed();
     }
 
     public SoundEngine getSoundEngine() {
